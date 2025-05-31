@@ -491,6 +491,10 @@ class Stats {
         this.spellPowerPercent = new Percentage(100),
         this.spellDamage = new Percentage(100),
         this.spellCooldownPercent = new Percentage(100),
+<<<<<<< Updated upstream
+=======
+        this.potionDamage = 0,
+>>>>>>> Stashed changes
 
         this.aptitude = 0,
         this.ineptitude = 0,

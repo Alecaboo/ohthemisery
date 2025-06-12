@@ -209,10 +209,13 @@ export async function getServerSideProps(context) {
     let itemData = null;
     if (AuthProvider.isUsingApi()) {
         await Axios.get(AuthProvider.getApiPath(), {headers: {'Authorization': AuthProvider.getAuthorizationData()}})
-            .then(response => {
-                itemData = response.data;
+            .then(async response => {
+                let apiData = response.data;
+                let extraItems = JSON.parse( await Fs.readFile('public/items/extraItems.json'));
+                itemData = {...apiData,...extraItems};
             })
             .catch(async (error) => {
+                console.error(error);
                 console.error("Fetch from Monumenta API failed. Attemtping to fetch from U5B's Github.");
                 await Axios.get("https://raw.githubusercontent.com/U5B/Monumenta/main/out/item.json")
                     .then(response => {

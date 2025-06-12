@@ -1,0 +1,96 @@
+{
+"Haemolacria-4": {
+ "location": "Intruder",
+ "masterwork": "4",
+ "region": "Ring",
+ "tier": "Artifact",
+ "name": "Haemolacria",
+ "base_item": "Stone Hoe",
+ "release_status": "public",
+ "type": "Scythe",
+ "stats": {
+   "bleeding": 1,
+   "unbreaking": 3,
+   "reverb": 4,
+   "hex_eater": 1,
+   "mending": 1,
+   "attack_speed_base": 1,
+   "attack_damage_base": 17
+ },
+ "lore": "This is dummy lore, added by Alecaboo."
+},
+ "Sedated Shadows-4": {
+   "location": "Intruder",
+   "masterwork": "4",
+   "region": "Ring",
+   "tier": "Artifact",
+   "name": "Sedated Shadows",
+   "base_item": "Leather Helmet",
+   "release_status": "public",
+   "type": "Helmet",
+   "stats": {
+     "unbreaking": 35,
+     "magic_protection": 2,
+     "poise": 2,
+     "first_strike": 2,
+     "armor": 6
+   },
+ "lore": "This is dummy lore, added by Alecaboo."
+ },
+   "Cognizant Seal-4": {
+   "location": "Intruder",
+   "masterwork": "4",
+   "region": "Ring",
+   "tier": "Artifact",
+   "name": "Cognizant Seal",
+   "base_item": "Chainmail Chestplate",
+   "release_status": "public",
+   "type": "Chestplate",
+   "stats": {
+     "unbreaking": 3,
+     "reflexes": 1,
+     "regicide": 1,
+     "mending": 1,
+     "magic_damage_percent": 20,
+     "agility": 7
+   },
+ "lore": "This is dummy lore, added by Alecaboo."
+ },
+  "Encroaching Dark-4": {
+   "location": "Intruder",
+   "masterwork": "4",
+   "region": "Ring",
+   "tier": "Artifact",
+   "name": "Encroaching Dark",
+   "base_item": "Leather Leggings",
+   "release_status": "public",
+   "type": "Leggings",
+   "stats": {
+     "unbreaking": 35,
+     "shielding": 2,
+     "technique": 2, 
+     "armor": 6,
+     "speed_percent": -10
+   },
+ "lore": "This is dummy lore, added by Alecaboo."
+ },
+   "Lurid Manacle-4": {
+   "location": "Intruder",
+   "masterwork": "4",
+   "region": "Ring",
+   "tier": "Artifact",
+   "name": "Lurid Manacle",
+   "base_item": "Golden Leggings",
+   "release_status": "public",
+   "type": "Leggings",
+   "stats": {
+    "poise": 1,
+    "tempo": 1,
+    "unbreaking": 35,
+    "armor": 7.5,
+    "max_health_flat": -2,
+    "magic_damage_percent": 20
+   },
+ "lore": "This is dummy lore, added by Alecaboo."
+ }
+}

@@ -42,15 +42,6 @@ const enabledBoxes = {
     technique: false,
     abyssal: false,
     // retaliation is handled separately
-
-    // Class Ability Buffs
-    versatile: false,
-    weapon_mastery: false,
-    formidable: false,
-    dethroner_elite: false, // handle dethroner separately?
-    dethroner_boss: false,
-    culling: false,
-    totemic_empowerment: false
 };
 
 const situationalDefenses = [
@@ -92,6 +83,54 @@ const extraStats = {
     attackSpeedMultipliers: []
 }
 
+const itemTypes = [
+    "mainhand", 
+    "offhand", 
+    "helmet", 
+    "chestplate", 
+    "leggings", 
+    "boots"
+];
+
+const regions = [
+    { value: 1, label: "Valley" },
+    { value: 2, label: "Isles" },
+    { value: 3, label: "Ring" }
+]
+
+const classes = [
+  "Alchemist",
+  "Cleric",
+  "Mage",
+  "Rogue",
+  "Scout",
+  "Shaman",
+  "Warlock",
+  "Warrior"
+]
+
+const classAbilityBuffs = {
+    "none": [], // placeholder to avoid undefineds
+    "alchemist": [],
+    "cleric": [],
+    "mage": [],
+    "rogue": ["Dethroner (Elite)", "Dethroner (Boss)"],
+    "scout": [".Versatile"],
+    "shaman": ["Totemic Empowerment"],
+    "warlock": ["Culling"],
+    "warrior": [".Formidable", "Weapon Mastery"]
+};
+
+const enabledClassAbilityBuffs = {
+    versatile: true,
+    weapon_mastery: false,
+    formidable: true,
+    dethroner_elite: false,
+    dethroner_boss: false,
+    culling: false,
+    totemic_empowerment: false
+}
+
 function groupMasterwork(items, itemData) {
     // Group up masterwork tiers by their name using an object, removing them from items.
     let masterworkItems = {};
@@ -123,7 +162,7 @@ function getRelevantItems(types, itemData) {
 }
 
 function recalcBuild(data, itemData) {
-    let tempStats = new Stats(itemData, data, enabledBoxes, extraStats);
+    let tempStats = new Stats(itemData, data, enabledBoxes, extraStats, enabledClassAbilityBuffs);
     return tempStats;
 }
 
@@ -150,24 +189,28 @@ function formatSituationalName(situ) {
     return situ.split("_").map(word => word[0].toUpperCase() + word.substring(1)).join(" ")
 }
 
+function unformatBuffName(buff) {
+    return buff.replace(/[.()]/,"").replace(" ","_").toLowerCase();
+}
+
 function generateSituationalCheckboxes(itemsToDisplay, checkboxChanged){
     let tempDef = [];
     let tempFlatDmg = [];
     let tempPercentDmg = [];
 
-    situationalDefenses.map(function(situ) { 
+    situationalDefenses.forEach(function(situ) { 
         if(!itemsToDisplay.situationals) return;
         if(itemsToDisplay.situationals[situ].level) { 
             tempDef.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={enabledBoxes[situ]} onChange={checkboxChanged} />);
         }
     });
-    situationalFlatDamage.map(function(situ) { 
+    situationalFlatDamage.forEach(function(situ) { 
         if(!itemsToDisplay.situationals) return;
         if(itemsToDisplay.situationals[situ].level) { 
             tempFlatDmg.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={enabledBoxes[situ]} onChange={checkboxChanged} />);
         }
     });
-    situationalPercentDamage.map(function(situ) { 
+    situationalPercentDamage.forEach(function(situ) { 
         if(!itemsToDisplay.situationals) return;
         if(itemsToDisplay.situationals[situ].level) { 
             tempPercentDmg.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={enabledBoxes[situ]} onChange={checkboxChanged} />);
@@ -195,10 +238,28 @@ function generateSituationalCheckboxes(itemsToDisplay, checkboxChanged){
     return temp;
 }
 
+function generateClassAbilityBuffCheckboxes(gameClass, buffCheckboxChanged){
+    let temp = [];
+    let buffs = classAbilityBuffs[gameClass];
+    if(!buffs) buffs = [];
+    buffs.forEach(function(buff) {
+        if(buff[0] == ".") { 
+            temp.push(<CheckboxWithLabel disabled={true} key={"classabilitybuffbox-"+unformatBuffName(buff)} name={buff.substring(1)} checked={true} />);
+        } else {
+            temp.push(<CheckboxWithLabel key={"classabilitybuffbox-"+unformatBuffName(buff)} name={buff} checked={enabledClassAbilityBuffs[buff]} onChange={buffCheckboxChanged} />);
+        }
+    })
+    if(temp.length == 0){
+        temp.push(<TranslatableText className={styles.noSituationals} key="builder.info.noClassAbilityBuffs" identifier="builder.info.noClassAbilityBuffs"></TranslatableText>)
+    }
+    return temp;
+}
+
 export default function BuildForm({ update, build, parentLoaded, itemData, itemsToDisplay, buildName, updateLink, setUpdateLink }) {
     const [stats, setStats] = React.useState({});
     const [charms, setCharms] = React.useState([]);
     const [urlCharms, setUrlCharms] = React.useState([]);
+    const [gameClass, setGameClass] = React.useState("none"); // "class" is a reserved word
 
     const [updateLoaded, setUpdateLoaded] = React.useState(false);
 
@@ -243,14 +304,6 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
             setUpdateLoaded(true);
         }
     }, [parentLoaded]);
-
-    const itemTypes = ["mainhand", "offhand", "helmet", "chestplate", "leggings", "boots"];
-
-    const regions = [
-        { value: 1, label: "Valley" },
-        { value: 2, label: "Isles" },
-        { value: 3, label: "Ring" }
-      ]
 
     const formRef = React.useRef();
     const router = useRouter();
@@ -368,6 +421,16 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         update(tempStats);
     }
 
+    function buffCheckboxChanged(event) {
+        const name = event.target.name.replace(" ","_").replace(/[()]/g,""); // replace spaces so we can still have them visually without breaking existing stuff
+        enabledClassAbilityBuffs[name] = event.target.checked;
+        console.log("setting ",name,event.target.checked)
+        const itemNames = Object.fromEntries(new FormData(formRef.current).entries());
+        const tempStats = recalcBuild(itemNames, itemData);
+        setStats(tempStats);
+        update(tempStats);
+    }
+
     function multipliersChanged(newMultipliers, name) {
         extraStats[name] = newMultipliers;
         const itemNames = Object.fromEntries(new FormData(formRef.current).entries());
@@ -407,7 +470,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         // so may as well. However, it's kind of awkward because the FormData.entries() does not yet contain
         // the new value of the item that was just changed, so we have to get it ourselves.
         // Unlike most event handler props, Select's `onChange` does not pass an event.
-        // It instead passes the new value of the Select, and an "action meta".
+        // It instead passes the new value of the Select, and an "action meta" containing the checkbox name (and other stuff).
         // Why is this not condensed into an event containing both of these and a ref to the target? Beats me. -LC
         let entries = Array.from(new FormData(formRef.current).entries());
         for(let i=0;i<entries.length;i++){
@@ -418,6 +481,25 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         setStats(tempStats);
         update(tempStats);
         router.push(`/builder?${makeBuildString(null, entries)}`, `/builder/${makeBuildString(null, entries)}`, { shallow: true });
+    }
+
+    function classChanged(newValue, actionMeta) {
+        // no need to check actionmeta because theres only one class dropdown
+        let newClass = newValue.value.toLowerCase();
+        setGameClass(newClass);
+        // need to set all buffs to false
+        Object.keys(enabledClassAbilityBuffs).forEach(buff => enabledClassAbilityBuffs[buff] = false);
+        // enable all always-on buffs for this class
+        classAbilityBuffs[newClass].forEach(buff => {
+            if(buff[0] == ".") {
+                enabledClassAbilityBuffs[unformatBuffName(buff)] = true;
+            }
+        })
+        // and then recalculate... zzz
+        const itemNames = Object.fromEntries(new FormData(formRef.current).entries());
+        const tempStats = recalcBuild(itemNames, itemData);
+        setStats(tempStats);
+        update(tempStats);
     }
 
     if(updateLink){
@@ -485,7 +567,6 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
             <div className="row justify-content-center mb-2 pt-2">
                 <div className="col-12 col-md-3 col-lg-2 text-center">
                     <p className="mb-1"><TranslatableText identifier="builder.misc.region"></TranslatableText></p>
-                    {/*<input type="number" name="situationalCap" placeholder="Situational Cap" min="1" defaultValue="30" className=""></input>*/}
                     <Select 
                         instanceId="this-is-just-here-so-react-doesnt-yell-at-me"
                         id="region"
@@ -501,10 +582,24 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                                 primary25: "#2a2a2a",
                                 neutral0: "black",
                                 neutral80: "white"
-                        },
-                    })} />
+                            },
+                        })} 
+                    />
+                </div>
+                <div className="col-12 col-md-3 col-lg-2 text-center">
+                    <p className="mb-1"><TranslatableText identifier="builder.misc.class"></TranslatableText></p>
+                    <SelectInput
+                        name="class"
+                        noneOption={true}
+                        sortableStats={classes}
+                        onChange={classChanged}
+                    />
                 </div>
             </div>
+            {(gameClass == "none") ? "" : <div className="row justify-content-center pt-2">
+                <TranslatableText identifier="builder.misc.classAbilityBuffs" className="text-center mb-1"></TranslatableText>
+                {generateClassAbilityBuffCheckboxes(gameClass, buffCheckboxChanged)}
+            </div>}
             <div className="row justify-content-center my-2">
                 <div className="col text-center">
                     <p className="mb-1"><TranslatableText identifier="builder.misc.maxHealthPercent"></TranslatableText></p>

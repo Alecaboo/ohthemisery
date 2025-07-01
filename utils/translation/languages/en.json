@@ -178,6 +178,7 @@
     "builder.misc.maxHealthPercent": "Max Health Percent",
     "builder.misc.situationalCap": "Situational Cap",
     "builder.misc.region": "Region",
+    "builder.misc.class": "Class",
 
     "builder.buttons.recalculate": "Recalculate",
     "builder.buttons.share": "Share",
@@ -186,6 +187,7 @@
     "builder.charms.select": "Select Charms",
 
     "builder.info.noSituationals": "(no situationals to display)",
+    "builder.info.noClassAbilityBuffs": "(no buffs for this class)",
 
     "builder.errors.corruption": "YOU HAVE MORE THAN ONE CURSE OF CORRUPTION ITEM",
     "builder.errors.twoHanded": "YOU ARE USING A TWO HANDED MAINHAND WITH A NON WEIGHTLESS OFFHAND",

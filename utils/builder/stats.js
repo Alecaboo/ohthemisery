@@ -3,8 +3,9 @@ import Percentage from './percentage';
 const types = ["mainhand", "offhand", "helmet", "chestplate", "leggings", "boots"];
 
 class Stats {
-    constructor(itemData, formData, enabledBoxes, extraStats) {
+    constructor(itemData, formData, enabledBoxes, extraStats, enabledClassAbilityBuffs) {
         this.enabledBoxes = enabledBoxes;
+        this.enabledClassAbilityBuffs = enabledClassAbilityBuffs;
         this.itemNames = {
             "mainhand": formData.mainhand,
             "offhand": formData.offhand,
@@ -137,8 +138,10 @@ class Stats {
         this.attackDamagePercent.add(staminaSit);
         this.attackDamagePercent.add(abyssalSit);
 
+        console.log(2, this.enabledClassAbilityBuffs)
         // class damage
-        if (this.enabledBoxes.weaponmastery) {
+        if (this.enabledClassAbilityBuffs.weapon_mastery) {
+            console.log(1)
             let mainhandType = this.fullItemData.mainhand.type;
             if (this.fullItemData.mainhand.type == "Axe") {
                 classAttackDamagePercent.add(10);
@@ -146,20 +149,20 @@ class Stats {
                 classAttackDamagePercent.add(10); 
             }
         }
-        if (this.enabledBoxes.versatile) {
+        if (this.enabledClassAbilityBuffs.versatile) {
             classAttackDamagePercent.add((this.projectileDamagePercent.perc - 100) * 0.5);
         }
         if (
-            (this.enabledBoxes.dethroner_boss || this.enabledBoxes.dethroner_elite)
+            (this.enabledClassAbilityBuffs.dethroner_boss || this.enabledClassAbilityBuffs.dethroner_elite)
             && this.fullItemData.mainhand.base_item?.match(/Sword/i)
             && this.fullItemData.offhand.type == "Offhand Sword"
         ) {
-            classAttackDamagePercent.add(this.enabledBoxes.dethroner_boss ? 15 : 30); // boss takes priority
+            classAttackDamagePercent.add(this.enabledClassAbilityBuffs.dethroner_boss ? 15 : 30); // boss takes priority
         }
         
         // flat damage
         // im absolutely not adding the ice aspect flat damage for blazes lmao
-        if (this.enabledBoxes.weaponmastery) {
+        if (this.enabledClassAbilityBuffs.weapon_mastery) {
             let mainhandType = this.fullItemData.mainhand.type;
             if (mainhandType == "Axe") {
                 flatAttackDamage += 4;
@@ -211,7 +214,7 @@ class Stats {
         this.projectileDamagePercent.add(abyssalSit);
 
         // class damage
-        if (this.enabledBoxes.versatile) {
+        if (this.enabledClassAbilityBuffs.versatile) {
             classProjectileDamagePercent.add((this.attackDamagePercent.perc - 100) * 0.4);
         }
 
@@ -333,15 +336,15 @@ class Stats {
             100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
         damageTaken.secondwind *= Math.pow(0.9, this.situationals.second_wind.level);
 
-        if (this.enabledBoxes.weaponmastery && this.fullItemData.mainhand.base_item?.match(/Sword/i)) {
+        if (this.enabledClassAbilityBuffs.weapon_mastery && this.fullItemData.mainhand.base_item?.match(/Sword/i)) {
             bonusResistanceMultiplier *= 0.9;
         }
 
-        if (this.enabledBoxes.culling && this.fullItemData.mainhand.type == "Scythe") {
+        if (this.enabledClassAbilityBuffs.culling && this.fullItemData.mainhand.type == "Scythe") {
             bonusResistanceMultiplier *= 0.9;
         }
 
-        if (this.enabledBoxes.totemic_empowerment) {
+        if (this.enabledClassAbilityBuffs.totemic_empowerment) {
             bonusResistanceMultiplier *= 0.9;
         }
 
@@ -457,6 +460,7 @@ class Stats {
     }
 
     adjustStats() {
+        console.log(this.enabledClassAbilityBuffs);
         /*
         Minor calculations to adjust the stat values
         */
@@ -468,12 +472,12 @@ class Stats {
         this.speedPercent = this.speedPercent
             .mul((this.speedFlat) / 0.1, false)
             .mul(((this.currentHealthPercent.perc <= 50) ? 1 - 0.1 * this.crippling : 1), false)
-            .mul(this.enabledBoxes.totemic_empowerment ? 1.1 : 1, false)
+            .mul(this.enabledClassAbilityBuffs.totemic_empowerment ? 1.1 : 1, false)
             .mul(this.extraSpeedMultiplier, false)
             .toFixedPerc(2);
 
         // Fix knockback resistance to be percentage and cap at 100
-        if (this.enabledBoxes.formidable) this.knockbackRes += 2;
+        if (this.enabledClassAbilityBuffs.formidable) this.knockbackRes += 2;
         this.knockbackRes = (this.knockbackRes > 10) ? 100 : this.knockbackRes * 10;
         // Calculate effective healing rate
         let effHealingNonRounded = new Percentage(((20 / this.healthFinal) * this.healingRate.val), false);

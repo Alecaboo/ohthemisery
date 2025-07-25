@@ -21,7 +21,7 @@ export default function SearchForm({ update, itemData }) {
     const itemTypes = ["Helmet", "Chestplate", "Leggings", "Boots", "Axe", "Wand",
         "Scythe", "Pickaxe", "Shovel", "Bow", "Crossbow", "Snowball", "Trident",
         "Projectile", "Offhand Shield", "Mainhand Shield", "Mainhand Sword",
-        "Offhand Sword", "Mainhand", "Offhand", "Consumable", "Misc", "Charm"];
+        "Offhand Sword", "Mainhand", "Offhand", "Alchemist Bag", "Consumable", "Misc", "Charm"];
     const charmClasses = ["Alchemist", "Mage", "Warlock", "Rogue", "Warrior",
         "Cleric", "Scout", "Shaman", "Generalist"];
     let sortableStats = [];

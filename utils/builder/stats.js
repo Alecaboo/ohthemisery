@@ -4,6 +4,7 @@ const types = ["mainhand", "offhand", "helmet", "chestplate", "leggings", "boots
 
 class Stats {
     constructor(itemData, formData, enabledBoxes, extraStats, enabledClassAbilityBuffs) {
+        this.region = Number(formData.region || 3); // stupid fucking stateful react jank bullshit makes half the form not exist upon clicking reset so i have to have a default to avoid NaNs -LC
         this.enabledBoxes = enabledBoxes;
         this.enabledClassAbilityBuffs = enabledClassAbilityBuffs;
         this.itemNames = {
@@ -39,6 +40,7 @@ class Stats {
             evasion: { enabled: enabledBoxes.evasion, level: 0 },
             tempo: { enabled: enabledBoxes.tempo, level: 0 },
             cloaked: { enabled: enabledBoxes.cloaked, level: 0 },
+            earth_aspect: { enabled: enabledBoxes.earth_aspect, level: 0 },
 
             smite: { enabled: enabledBoxes.smite, level: 0 },
             duelist: { enabled: enabledBoxes.duelist, level: 0 },
@@ -51,7 +53,12 @@ class Stats {
             stamina: { enabled: enabledBoxes.stamina, level: 0 },
             technique: { enabled: enabledBoxes.technique, level: 0 },
             abyssal: { enabled: enabledBoxes.abyssal, level: 0 },
-            // retaliation is separate
+            fractal: { enabled: enabledBoxes.fractal, level: 0 },
+            
+            // fake entries to never throw errors, none of these are real enchantments
+            retaliation_normal: { enabled: enabledBoxes.retaliation_normal, level: 0 },
+            retaliation_elite: { enabled: enabledBoxes.retaliation_elite, level: 0 },
+            retaliation_boss: { enabled: enabledBoxes.retaliation_boss, level: 0 },
 
             adaptability: { enabled: true, level: 0 }
         };
@@ -63,8 +70,8 @@ class Stats {
         this.perspicacity = (formData.perspicacity) ? formData.perspicacity : 0;
 
         this.currentHealthPercent = (formData.health) ? new Percentage(formData.health) : new Percentage(100);
-        this.situationalCap = (formData.region == 1) ? 20 : 30;
-        this.damageInfusionsMultiplier = 0.75 + 0.25 * (formData.region || 3); // stupid fucking stateful react jank bullshit makes half the form not exist upon clicking reset so i have to have a default to avoid NaNs -LC
+        this.situationalCap = (this.region == 1) ? 20 : 30;
+        this.damageInfusionsMultiplier = 0.75 + 0.25 * this.region;
 
         this.extraDamageMultiplier = 1;
         this.extraResistanceMultiplier = new Percentage(100);
@@ -108,12 +115,7 @@ class Stats {
     calculateOffenseStats() {
         // as of additive, "class damage" is a separate category for damage that is added together and then multiplied by gear damage 
         // flat damage is added after all multipliers are calculated
-        let classDamagePercent = new Percentage(100);
-        let classAttackDamagePercent = new Percentage(100);
-        let classProjectileDamagePercent = new Percentage(100);
-        let classMagicDamagePercent = new Percentage(100);
         let flatAttackDamage = 0;
-
         // damage situationals
 
         let firstStrikeSit = (this.situationals.first_strike.enabled) ? 10 * this.situationals.first_strike.level : 0;
@@ -122,7 +124,20 @@ class Stats {
         let staminaSit = (this.situationals.stamina.enabled) ? 10 * this.situationals.stamina.level : 0;
         let techniqueSit = (this.situationals.technique.enabled) ? 10 * this.situationals.technique.level : 0;
         let abyssalSit = (this.situationals.abyssal.enabled) ? 10 * this.situationals.abyssal.level : 0;
+        let fractalSit = (this.situationals.fractal.enabled) ? 10 * this.situationals.fractal.level : 0;
+        let retaliationSit = 
+            this.situationals.retaliation_boss.enabled ? 65
+            : this.situationals.retaliation_elite.enabled ? 50
+            : this.situationals.retaliation_normal.enabled ? 35
+            : 0;
 
+        // out of order weh weh idc anymore. cbless clause
+        if(this.enabledClassAbilityBuffs.celestial_blessing) {
+            let bonus = this.enabledClassAbilityBuffs.celestial_blessing_lv2 ? 30 : 20;
+            this.classAttackDamagePercent.add(bonus);
+            this.classProjectileDamagePercent.add(bonus);
+            this.classMagicDamagePercent.add(bonus);
+        }
         // Melee Stats
 
         // base damage
@@ -137,27 +152,33 @@ class Stats {
         this.attackDamagePercent.add(regicideSit);
         this.attackDamagePercent.add(staminaSit);
         this.attackDamagePercent.add(abyssalSit);
+        this.attackDamagePercent.add(retaliationSit);
 
-        console.log(2, this.enabledClassAbilityBuffs)
         // class damage
         if (this.enabledClassAbilityBuffs.weapon_mastery) {
-            console.log(1)
             let mainhandType = this.fullItemData.mainhand.type;
             if (this.fullItemData.mainhand.type == "Axe") {
-                classAttackDamagePercent.add(10);
+                this.classAttackDamagePercent.add(this.enabledClassAbilityBuffs.weapon_mastery_lv2 ? 10 : 5);
+                if(this.enabledClassAbilityBuffs.weapon_mastery_enhancement) this.classAttackDamagePercent.add(10);
             } else if (this.fullItemData.mainhand.base_item?.match(/Sword/i)) { // sword wands are still swords but count as wands in item type -LC
-                classAttackDamagePercent.add(10); 
+                this.classAttackDamagePercent.add(this.enabledClassAbilityBuffs.weapon_mastery_lv2 ? 10 : 0); 
+                if(this.enabledClassAbilityBuffs.weapon_mastery_enhancement) this.classAttackDamagePercent.add(10);
             }
         }
         if (this.enabledClassAbilityBuffs.versatile) {
-            classAttackDamagePercent.add((this.projectileDamagePercent.perc - 100) * 0.5);
+            this.classAttackDamagePercent.add((this.projectileDamagePercent.perc - 100) * 0.5);
         }
         if (
             (this.enabledClassAbilityBuffs.dethroner_boss || this.enabledClassAbilityBuffs.dethroner_elite)
             && this.fullItemData.mainhand.base_item?.match(/Sword/i)
             && this.fullItemData.offhand.type == "Offhand Sword"
         ) {
-            classAttackDamagePercent.add(this.enabledClassAbilityBuffs.dethroner_boss ? 15 : 30); // boss takes priority
+            this.classAttackDamagePercent.add(this.enabledClassAbilityBuffs.dethroner_boss ? 15 : 30); // boss takes priority
+        }
+
+        // channeling is a dumb passive, for the record
+        if (this.enabledClassAbilityBuffs.channeling) {
+            this.classAttackDamagePercent.add(20);
         }
         
         // flat damage
@@ -165,9 +186,9 @@ class Stats {
         if (this.enabledClassAbilityBuffs.weapon_mastery) {
             let mainhandType = this.fullItemData.mainhand.type;
             if (mainhandType == "Axe") {
-                flatAttackDamage += 4;
+                flatAttackDamage += this.enabledClassAbilityBuffs.weapon_mastery_lv2 ? 4 : 2;
             } else if (mainhandType == "Mainhand Sword") {
-                flatAttackDamage += 1;
+                flatAttackDamage += this.enabledClassAbilityBuffs.weapon_mastery_lv2 ? 1 : 0;
             }
         }
 
@@ -175,7 +196,7 @@ class Stats {
         let attackDamage = attackDamageBase
             * this.attackDamagePercent.val
             * ((this.currentHealthPercent.perc <= 50) ? 1 - 0.1 * this.crippling : 1)
-            * (classDamagePercent.val + classAttackDamagePercent.val - 1) // general class damage and class attack damage are added, the -1 is because they both start at 1
+            * this.classAttackDamagePercent.val
             * this.extraDamageMultiplier;
         let attackDamageCrit = this.cumbersome ? attackDamage : (attackDamage * 1.5);
         attackDamage += flatAttackDamage;
@@ -186,16 +207,6 @@ class Stats {
             * this.attackSpeedPercent.val 
             * this.extraAttackSpeedMultiplier;
         let attackCritSpeed = Math.min(attackSpeed, 5/3);
-
-        // display
-        this.attackSpeedPercent = this.attackSpeedPercent.toFixedPerc(2);
-        this.attackSpeed = attackSpeed.toFixed(2);
-        this.attackDamagePercent = this.attackDamagePercent.toFixedPerc(2);
-        this.attackDamage = attackDamage.toFixed(2);
-        this.attackDamageCrit = attackDamageCrit.toFixed(2);
-        this.iframeDPS = ((attackSpeed >= 2) ? attackDamage * 2 : attackDamage * attackSpeed).toFixed(2);
-        this.iframeCritDPS = ((attackSpeed >= 2) ? attackDamageCrit * 2 : attackDamageCrit * attackSpeed).toFixed(2);
-        this.critSpamDPS = (attackCritSpeed * attackDamageCrit).toFixed(2);
 
         // Projectile Stats
 
@@ -212,10 +223,11 @@ class Stats {
         this.projectileDamagePercent.add(staminaSit);
         this.projectileDamagePercent.add(0.75 * techniqueSit); // proj technique is 7.5%*level
         this.projectileDamagePercent.add(abyssalSit);
+        this.projectileDamagePercent.add(retaliationSit * 0.5);
 
         // class damage
         if (this.enabledClassAbilityBuffs.versatile) {
-            classProjectileDamagePercent.add((this.attackDamagePercent.perc - 100) * 0.4);
+            this.classProjectileDamagePercent.add((this.attackDamagePercent.perc - 100) * 0.4);
         }
 
         // flat damage
@@ -228,16 +240,8 @@ class Stats {
         // final damage
         let projectileDamage = projectileDamageBase
             * this.projectileDamagePercent.val
-            * (classDamagePercent.val + classProjectileDamagePercent.val - 1) // general class damage and class proj damage are added, the -1 is because they both start at 1
+            * this.classProjectileDamagePercent.val
             * this.extraDamageMultiplier;
-
-        // display
-        this.projectileDamagePercent = this.projectileDamagePercent.toFixedPerc(2);
-        this.projectileDamage = projectileDamage.toFixed(2);
-        this.projectileSpeedPercent = this.projectileSpeedPercent.toFixedPerc(2);
-        this.projectileSpeed = projectileSpeed.toFixed(2);
-        this.throwRatePercent = this.throwRatePercent.toFixedPerc(2);
-        this.throwRate = throwRate.toFixed(2);
 
         // Magic Stats
 
@@ -251,12 +255,19 @@ class Stats {
         this.magicDamagePercent.add(triviumSit);
         this.magicDamagePercent.add(techniqueSit);
         this.magicDamagePercent.add(abyssalSit);
+        this.magicDamagePercent.add(fractalSit);
+        this.magicDamagePercent.add(retaliationSit * 0.5);
         if (this.fullItemData.mainhand?.stats?.alchemical_utensil) {
             this.magicDamagePercent.add(firstStrikeSit);
         }
 
         // class damage
-
+        if (this.enabledClassAbilityBuffs.taboo_lv2) {
+            this.classMagicDamagePercent.add(this.enabledClassAbilityBuffs.taboo_burst ? 80 : 30);
+        } else if (this.enabledClassAbilityBuffs.taboo_lv1) {
+            this.classMagicDamagePercent.add(20);
+        } 
+        
         // flat damage
 
         // misc
@@ -265,13 +276,33 @@ class Stats {
 
         // final damage
         let magicMultiplier = this.magicDamagePercent.val
-            * (classDamagePercent.val + classMagicDamagePercent.val - 1) // general class damage and class magic damage are added, the -1 is because they both start at 1
+            * this.classMagicDamagePercent.val
             * this.extraDamageMultiplier;
         this.spellDamage = this.spellPowerPercent.duplicate().mul(magicMultiplier, false);
         this.potionDamage = potionDamageBase * magicMultiplier;
 
+
         // display
+        this.attackSpeedPercent = this.attackSpeedPercent.toFixedPerc(2);
+        this.attackSpeed = attackSpeed.toFixed(2);
+        this.attackDamagePercent = this.attackDamagePercent.toFixedPerc(2);
+        this.classAttackDamagePercent = this.classAttackDamagePercent.toFixedPerc(2);
+        this.attackDamage = attackDamage.toFixed(2);
+        this.attackDamageCrit = attackDamageCrit.toFixed(2);
+        this.iframeDPS = ((attackSpeed >= 2) ? attackDamage * 2 : attackDamage * attackSpeed).toFixed(2);
+        this.iframeCritDPS = ((attackSpeed >= 2) ? attackDamageCrit * 2 : attackDamageCrit * attackSpeed).toFixed(2);
+        this.critSpamDPS = (attackCritSpeed * attackDamageCrit).toFixed(2);
+
+        this.projectileDamagePercent = this.projectileDamagePercent.toFixedPerc(2);
+        this.classProjectileDamagePercent = this.classProjectileDamagePercent.toFixedPerc(2);
+        this.projectileDamage = projectileDamage.toFixed(2);
+        this.projectileSpeedPercent = this.projectileSpeedPercent.toFixedPerc(2);
+        this.projectileSpeed = projectileSpeed.toFixed(2);
+        this.throwRatePercent = this.throwRatePercent.toFixedPerc(2);
+        this.throwRate = throwRate.toFixed(2);
+
         this.magicDamagePercent = this.magicDamagePercent.toFixedPerc(2);
+        this.classMagicDamagePercent = this.classMagicDamagePercent.toFixedPerc(2);
         this.spellPowerPercent = this.spellPowerPercent.toFixedPerc(2);
         this.spellDamage = this.spellDamage.toFixedPerc(2);
         this.spellCooldownPercent = this.spellCooldownPercent.toFixedPerc(2);
@@ -326,14 +357,16 @@ class Stats {
 
     calculateDamageTaken(noArmor, prot, fragility, protmodifier, earmor, eagility) {
         let damageTaken = {};
+        let worldlyProtDR = 0.025 * (this.region + 1);
+        let worldlyProtMultiplier = (1 - this.worldlyProtection * worldlyProtDR);
         let bonusResistanceMultiplier = 1;
         // bonus resistance is only used for class ability buffs right now -LC
         
-        damageTaken.base = ((noArmor) ? 100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, (prot * protmodifier - fragility * protmodifier)) :
-            100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
+        damageTaken.base = ((noArmor) ? 100 * worldlyProtMultiplier * Math.pow(0.96, (prot * protmodifier - fragility * protmodifier)) :
+            100 * worldlyProtMultiplier * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
 
-        damageTaken.secondwind = ((noArmor) ? 100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, (prot * protmodifier - fragility * protmodifier)) :
-            100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
+        damageTaken.secondwind = ((noArmor) ? 100 * worldlyProtMultiplier * Math.pow(0.96, (prot * protmodifier - fragility * protmodifier)) :
+            100 * worldlyProtMultiplier * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
         damageTaken.secondwind *= Math.pow(0.9, this.situationals.second_wind.level);
 
         if (this.enabledClassAbilityBuffs.weapon_mastery && this.fullItemData.mainhand.base_item?.match(/Sword/i)) {
@@ -346,6 +379,10 @@ class Stats {
 
         if (this.enabledClassAbilityBuffs.totemic_empowerment) {
             bonusResistanceMultiplier *= 0.9;
+        }
+
+        if(this.situationals.earth_aspect.enabled) {
+            bonusResistanceMultiplier *= (1 - 0.05 * this.situationals.earth_aspect.level);
         }
 
         damageTaken.base = damageTaken.base
@@ -460,7 +497,6 @@ class Stats {
     }
 
     adjustStats() {
-        console.log(this.enabledClassAbilityBuffs);
         /*
         Minor calculations to adjust the stat values
         */
@@ -473,18 +509,23 @@ class Stats {
             .mul((this.speedFlat) / 0.1, false)
             .mul(((this.currentHealthPercent.perc <= 50) ? 1 - 0.1 * this.crippling : 1), false)
             .mul(this.enabledClassAbilityBuffs.totemic_empowerment ? 1.1 : 1, false)
+            .mul(this.enabledClassAbilityBuffs.celestial_blessing ? 1.2 : 1, false)
+            .mul(this.enabledClassAbilityBuffs.weapon_mastery_enhancement && this.fullItemData.mainhand.type == "Axe" ? 1.15 : 1, false)
             .mul(this.extraSpeedMultiplier, false)
             .toFixedPerc(2);
 
         // Fix knockback resistance to be percentage and cap at 100
         if (this.enabledClassAbilityBuffs.formidable) this.knockbackRes += 2;
+        if (this.enabledClassAbilityBuffs.taboo) this.knockbackRes += 5;
         this.knockbackRes = (this.knockbackRes > 10) ? 100 : this.knockbackRes * 10;
         // Calculate effective healing rate
         let effHealingNonRounded = new Percentage(((20 / this.healthFinal) * this.healingRate.val), false);
+        if(this.enabledClassAbilityBuffs.taboo) effHealingNonRounded.mul(50);
         this.effHealingRate = effHealingNonRounded.toFixedPerc(2);
         // Fix regen to the actual value per second
         let regenPerSecNonRounded = 1/3 * Math.sqrt(this.baseRegenLevel) * this.healingRate.val;
         regenPerSecNonRounded -= 1/3 * this.baseVeilcurseLevel;
+        if(this.enabledClassAbilityBuffs.taboo_burst) regenPerSecNonRounded -= 0.07 * this.healthFinal;
         this.regenPerSec = regenPerSecNonRounded.toFixed(2);
         // Calculate %hp regen per sec
         this.regenPerSecPercent = new Percentage(((regenPerSecNonRounded / this.healthFinal)), false).toFixedPerc(2);
@@ -568,9 +609,11 @@ class Stats {
                 Object.keys(this.situationals).forEach(situ => {
                     this.situationals[situ].level += this.sumNumberStat(itemStats, situ);
                 })
+                this.retaliation += this.sumNumberStat(itemStats, "retaliation");
 
                 this.crippling += this.sumNumberStat(itemStats, "curse_of_crippling");
                 this.corruption += this.sumNumberStat(itemStats, "curse_of_corruption");
+                this.instability += this.sumNumberStat(itemStats, "curse_of_instability");
             }
         });
     }
@@ -662,15 +705,21 @@ class Stats {
         this.spellDamage = new Percentage(100),
         this.spellCooldownPercent = new Percentage(100),
         this.potionDamage = 1,
+        
+        this.classAttackDamagePercent = new Percentage(100);
+        this.classProjectileDamagePercent = new Percentage(100);
+        this.classMagicDamagePercent = new Percentage(100);
 
         this.aptitude = 0,
         this.ineptitude = 0,
         this.crippling = 0,
-        this.corruption = 0
+        this.corruption = 0,
+        this.retaliation = 0,
 
         this.twoHanded = (this.itemStats.mainhand && this.itemStats.mainhand["two_handed"] == 1) ? true : false;
         this.weightless = (this.itemStats.offhand && this.itemStats.offhand["weightless"] == 1) ? true : false;
         this.cumbersome = (this.itemStats.mainhand && this.itemStats.mainhand["cumbersome"] == 1) ? true : false;
+        this.instability = 0;
     }
 }
 

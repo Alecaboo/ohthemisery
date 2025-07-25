@@ -26,6 +26,7 @@
     "items.type.projectile": "Projectile",
     "items.type.offhand": "Offhand",
     "items.type.mainhand": "Mainhand",
+    "items.type.alchemistBag": "Alchemist Bag",
     "items.type.consumable": "Consumable",
     "items.type.misc": "Misc",
     "items.type.charm": "Charm",
@@ -226,6 +227,7 @@
     "builder.stats.dr-ehp.fire": "Fire",
     "builder.stats.dr-ehp.fall": "Fall",
     "builder.stats.dr-ehp.ailment": "Ailment",
+    "builder.stats.dr-ehp.unstable": "Instability",
 
     "builder.stats.melee.attackSpeedPercent": "Attack Speed",
     "builder.stats.melee.attackSpeed": "Weapon Attack Speed",
@@ -253,5 +255,10 @@
     "builder.multipliers.resistance": "Resistance Multipliers",
     "builder.multipliers.health": "Health Multipliers",
     "builder.multipliers.attackSpeed": "Attack Speed Multipliers",
-    "builder.multipliers.speed": "Speed Multipliers"
+    "builder.multipliers.speed": "Speed Multipliers",
+
+    
+    "builder.stats.melee.classAttackDamagePercent": "Class Damage",
+    "builder.stats.projectile.classProjectileDamagePercent": "Class Projectile Damage",
+    "builder.stats.magic.classMagicDamagePercent": "Class Magic Damage"
 }

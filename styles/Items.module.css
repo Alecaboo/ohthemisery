@@ -50,6 +50,10 @@
     padding-left: 3px;
 }
 
+.grayedout {
+    color: #888
+}
+
 .imageIcon {
     display: flex;
     justify-content: center;

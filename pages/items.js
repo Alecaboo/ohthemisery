@@ -283,6 +283,7 @@ export async function getServerSideProps(context) {
                 itemData[mwExName] = itemData[item];
                 itemData[mwExName].name = exName;
                 delete itemData[item];
+                continue;
             }
         }
         if(itemStats.location == "Skr"){
@@ -300,6 +301,14 @@ export async function getServerSideProps(context) {
             break;
         }
 
+        if(itemStats.stats.alchemical_utensil) {
+            //console.log(itemData[item])
+            try {
+                itemData[item].type = "Alchemist Bag"
+            } catch (e) {
+                console.log(item)
+            }
+        }
     }
 
     return {

@@ -7,6 +7,7 @@ import AuthProvider from '../utils/authProvider';
 import Fs from 'fs/promises';
 import extras from '../public/items/extras.json';
 import BuilderHeader from '../components/items/builderHeader';
+import styles from '../styles/Items.module.css'
 
 function getLinkPreviewDescription(build, itemData) {
     if (!build) return ""
@@ -112,6 +113,7 @@ export default function Builder({ build, itemData }) {
         { type: "attackSpeedPercent", name: "builder.stats.melee.attackSpeedPercent", percent: true },
         { type: "attackSpeed", name: "builder.stats.melee.attackSpeed", percent: false },
         { type: "attackDamagePercent", name: "builder.stats.melee.attackDamagePercent", percent: true },
+        { type: "classAttackDamagePercent", name: "builder.stats.melee.classAttackDamagePercent", percent: true },
         { type: "attackDamage", name: "builder.stats.melee.attackDamage", percent: false },
         { type: "attackDamageCrit", name: "builder.stats.melee.attackDamageCrit", percent: false },
         { type: "iframeDPS", name: "builder.stats.melee.iframeDps", percent: false },
@@ -120,6 +122,7 @@ export default function Builder({ build, itemData }) {
     ];
     const projectileStats = [
         { type: "projectileDamagePercent", name: "builder.stats.projectile.projectileDamagePercent", percent: true },
+        { type: "classProjectileDamagePercent", name: "builder.stats.projectile.classProjectileDamagePercent", percent: true },
         { type: "projectileDamage", name: "builder.stats.projectile.projectileDamage", percent: false },
         { type: "projectileSpeedPercent", name: "builder.stats.projectile.projectileSpeedPercent", percent: true },
         { type: "projectileSpeed", name: "builder.stats.projectile.projectileSpeed", percent: false },
@@ -128,6 +131,7 @@ export default function Builder({ build, itemData }) {
     ];
     const magicStats = [
         { type: "magicDamagePercent", name: "builder.stats.magic.magicDamagePercent", percent: true },
+        { type: "classMagicDamagePercent", name: "builder.stats.magic.classMagicDamagePercent", percent: true },
         // { type: "spellPowerPercent", name: "builder.stats.magic.spellPowerPercent", percent: true }, 
         // technically for consistency having this ^ line here doesn't make sense because it's like if
         // melee stats listed "weapon base attack damage" as a line
@@ -206,36 +210,52 @@ export default function Builder({ build, itemData }) {
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.effectiveHealth"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
-                            EHPStats.map(stat =>
-                                (itemsToDisplay[stat.type] !== undefined) ?
-                                    <div key={stat.type}>
-                                        <p className="mb-1 mt-1"><b><TranslatableText identifier={stat.name}></TranslatableText>: </b>{itemsToDisplay[stat.type]}{stat.percent ? "%" : ""}</p>
-                                    </div> : ""
-                            )
+                            (() => {
+                                const unstableEHPTypes = ["meleeEHP", "projectileEHP", "magicEHP", "blastEHP"];
+                                let temp = EHPStats.map(stat => {
+                                    let condition = itemsToDisplay.instability && unstableEHPTypes.includes(stat.type);
+                                    return (itemsToDisplay[stat.type] !== undefined) ?
+                                        <div key={stat.type}>
+                                            <p className={`mb-1 mt-1 ${condition ? styles.grayedout : ""}`}><b><TranslatableText identifier={stat.name}></TranslatableText>: </b>{itemsToDisplay[stat.type]}{stat.percent ? "%" : ""}</p>
+                                        </div> : ""
+                                })
+                                console.log(itemsToDisplay);
+                                if(itemsToDisplay.instability) {
+                                    let avg = 0;
+                                    unstableEHPTypes.forEach(t => avg += Number(itemsToDisplay[t]))
+                                    avg /= 4;
+                                    temp.unshift(<div key={"unstableEHP"}>
+                                            <p className="mb-1 mt-1"><b><TranslatableText identifier={"builder.stats.dr-ehp.unstable"}></TranslatableText>: </b>{avg.toFixed(2)}</p>
+                                        </div>)
+                                }
+                                return temp;
+                            })()
                         }
                     </div>
                     <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.melee"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
-                            meleeStats.map(stat =>
-                                (itemsToDisplay[stat.type] !== undefined) ?
+                            meleeStats.map(stat => {
+                                if(stat.type == "classAttackDamagePercent" && itemsToDisplay.classAttackDamagePercent == 100) return "";
+                                return (itemsToDisplay[stat.type] !== undefined) ?
                                     <div key={stat.type}>
                                         <p className="mb-1 mt-1"><b><TranslatableText identifier={stat.name}></TranslatableText>: </b>{itemsToDisplay[stat.type]}{stat.percent ? "%" : ""}</p>
                                     </div> : ""
-                            )
+                            })
                         }
                     </div>
                     <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.projectile"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
-                            projectileStats.map(stat =>
-                                (itemsToDisplay[stat.type] !== undefined) ?
+                            projectileStats.map(stat => {
+                                if(stat.type == "classProjectileDamagePercent" && itemsToDisplay.classProjectileDamagePercent == 100) return "";
+                                return (itemsToDisplay[stat.type] !== undefined) ?
                                     <div key={stat.type}>
                                         <p className="mb-1 mt-1"><b><TranslatableText identifier={stat.name}></TranslatableText>: </b>{itemsToDisplay[stat.type]}{stat.percent ? "%" : ""}</p>
                                     </div> : ""
-                            )
+                            })
                         }
                     </div>
                     <div className="col-auto text-center border border-dark mx-2 py-2">
@@ -243,10 +263,11 @@ export default function Builder({ build, itemData }) {
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
                             magicStats.map(stat => {
+                                if(stat.type == "classMagicDamagePercent" && itemsToDisplay.classMagicDamagePercent == 100) return "";
                                 return (
                                     itemsToDisplay[stat.type] !== undefined
-                                    && (stat.type != "potionDamage" || itemsToDisplay.spellDamage == 100) // only show potion damage if spell damage is 100% (default)
-                                    && (stat.type != "spellDamage" || itemsToDisplay.potionDamage == 0) // only show spell damage if potion damage is 0
+                                    && (stat.type != "potionDamage" || itemsToDisplay.spellPowerPercent == "100.00") // only show potion damage if spell power is 100% (default)
+                                    && (stat.type != "spellDamage" || itemsToDisplay.potionDamage == "0.00") // only show spell damage if potion damage is 0
                                 ) ?
                                     <div key={stat.type}>
                                         <p className="mb-1 mt-1"><b><TranslatableText identifier={stat.name}></TranslatableText>: </b>{itemsToDisplay[stat.type]}{stat.percent ? "%" : ""}</p>

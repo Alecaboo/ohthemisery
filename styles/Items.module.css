@@ -1,3 +1,8 @@
+/**
+ * get location name colors from here
+ * https://github.com/TeamMonumenta/monumenta-plugins-public/blob/master/plugins/paper/src/main/java/com/playmonumenta/plugins/itemstats/enums/Location.java
+ */
+
 .main {
     display: flex;
     flex-direction: column;
@@ -43,6 +48,10 @@
 
 .checkboxWithLabel >* {
     padding-left: 3px;
+}
+
+.grayedout {
+    color: #888
 }
 
 .imageIcon {
@@ -209,6 +218,32 @@
     color: #46B4B3;
 }
 
+.blue {
+    color: #0c2ba0;
+}
+
+.brown {
+    color: #6f3508;
+}
+
+.indigo {
+    /* soon! */
+    color: #6f00ff;
+}
+
+.green {
+    /* putting these three in advance */
+    color: #4d6e23;
+}
+
+.red {
+    color: #d02e28;
+}
+
+.black {
+    color: #454040;
+}
+
 .shifting {
     color: #7DFCD1;
 }
@@ -275,14 +310,6 @@
 
 .theWolfswood {
     color: #4b8d4c;
-}
-
-.blue {
-    color: #0c2ba0;
-}
-
-.brown {
-    color: #6f3508;
 }
 
 .silverKnightsTomb {

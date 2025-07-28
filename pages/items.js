@@ -273,6 +273,16 @@ export async function getServerSideProps(context) {
         if (extras[itemStats.name]) {
             itemData[item].extras = extras[itemStats.name];
         }
+        // alch bag (must run before exalted)
+        if(itemStats.stats.alchemical_utensil) {
+            //console.log(itemData[item])
+            try {
+                itemData[item].type = "Alchemist Bag"
+                delete itemData[item].stats.alchemical_utensil;
+            } catch (e) {
+                console.log(item)
+            }
+        }
         // Exalted
         if (itemStats.masterwork) {
             // If an item with the base, non-masterwork name exists, as a key
@@ -299,15 +309,6 @@ export async function getServerSideProps(context) {
           case "Overworld3":
             itemData[item].location = "Architect's Ring Overworld";
             break;
-        }
-
-        if(itemStats.stats.alchemical_utensil) {
-            //console.log(itemData[item])
-            try {
-                itemData[item].type = "Alchemist Bag"
-            } catch (e) {
-                console.log(item)
-            }
         }
     }
 

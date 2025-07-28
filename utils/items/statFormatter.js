@@ -26,7 +26,7 @@ const categories = {
     ],
     "misc": [
         ...["second_wind", "inferno", "regicide", "aptitude", "triage", "trivium", "looting",
-            "ice_aspect", "fire_aspect", "thunder_aspect", "wind_aspect", "earth_aspect"]
+            "ice_aspect", "fire_aspect", "thunder_aspect", "wind_aspect", "earth_aspect", "fractal"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT })),
         ...["intuition", "weightless", "radiant", "darksight", "void_tether", "resurrection", "infinity"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_ENCHANT }))

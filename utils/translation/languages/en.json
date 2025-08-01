@@ -171,7 +171,7 @@
     "items.enchant.material": "Is a crafting material. Can be used as a vanilla minecraft item when crafting.",
     "items.enchant.snowy": "Players holding a Snowy item in inventory can be hit by Snowball Launchers.",
     "items.enchant.worldlyProtection": "Multiplies all non-true damage taken by ((2.5% * (region number + 1)) * level). Reduces damage dealt by players by (25% * level).",
-    
+    "items.enchant.fractal": "Your magic abilities will deal (10% * level) more damage for 2 seconds after hitting an enemy with a magic ability. This increase can only happen once every 6 seconds.",
     
 
     "builder.misc.situationals": "Situationals",

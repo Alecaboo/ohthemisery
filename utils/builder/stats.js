@@ -70,7 +70,8 @@ class Stats {
         this.perspicacity = (formData.perspicacity) ? formData.perspicacity : 0;
 
         this.currentHealthPercent = (formData.health) ? new Percentage(formData.health) : new Percentage(100);
-        this.situationalCap = (this.region == 1) ? 20 : 30;
+        this.situationalCap = [20,30,36][this.region - 1];
+        this.situationalEHPScaling = [0.2,0.25,0.3][this.region - 1];
         this.damageInfusionsMultiplier = 0.75 + 0.25 * this.region;
 
         this.extraDamageMultiplier = 1;
@@ -355,18 +356,19 @@ class Stats {
         this.ailmentHNDR = new Percentage((1 - ((1 - drs.ailment[drType].val) / (this.healthFinal / 20))), false).toFixedPerc(2);
     }
 
-    calculateDamageTaken(noArmor, prot, fragility, protmodifier, earmor, eagility) {
+    calculateDamageTaken(noArmor, prot, fragility, protmodifier, armor, agility, usesSituationals) {
         let damageTaken = {};
         let worldlyProtDR = 0.025 * (this.region + 1);
         let worldlyProtMultiplier = (1 - this.worldlyProtection * worldlyProtDR);
         let bonusResistanceMultiplier = 1;
+        let situationalResistanceMultiplier = 1;
         // bonus resistance is only used for class ability buffs right now -LC
         
         damageTaken.base = ((noArmor) ? 100 * worldlyProtMultiplier * Math.pow(0.96, (prot * protmodifier - fragility * protmodifier)) :
-            100 * worldlyProtMultiplier * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
+            100 * worldlyProtMultiplier * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + armor + agility) - (0.5 * armor * agility / (armor + agility))));
 
         damageTaken.secondwind = ((noArmor) ? 100 * worldlyProtMultiplier * Math.pow(0.96, (prot * protmodifier - fragility * protmodifier)) :
-            100 * worldlyProtMultiplier * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
+            100 * worldlyProtMultiplier * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + armor + agility) - (0.5 * armor * agility / (armor + agility))));
         damageTaken.secondwind *= Math.pow(0.9, this.situationals.second_wind.level);
 
         if (this.enabledClassAbilityBuffs.weapon_mastery && this.fullItemData.mainhand.base_item?.match(/Sword/i)) {
@@ -385,15 +387,59 @@ class Stats {
             bonusResistanceMultiplier *= (1 - 0.05 * this.situationals.earth_aspect.level);
         }
 
+        // So... situational changes, huh? Fun!
+        // 
+        // The new formula for situationals is that they provide enough armor/agi to give more additive ehp,
+        // instead of the old multiplicative mess. The formula for the amount of ehp added is:
+        // [region value] * Math.min(1, [player's armor/agi]/[region situational cap]) * total levels of situationals
+        // where [region value] is 20%/25%/30% for r1/2/3, and the situational cap is 20/30/36 for r1/2/3.
+        // (Essentially, the math.min just means if armor >= situational cap, you get the full region value,
+        // if your armor is half the situational cap, you get half the region value, etc.)
+        // -LC
+
+        if(usesSituationals) {
+            let armorScaling = Math.min(armor / this.situationalCap, 1);
+            let agilityScaling = Math.min(agility / this.situationalCap, 1);
+            if(this.situationals.adaptability.level > 0) {
+                armorScaling = Math.max(armorScaling, agilityScaling);
+                agilityScaling = Math.max(armorScaling, agilityScaling);
+            }
+            armorScaling *= this.situationalEHPScaling;
+            agilityScaling *= this.situationalEHPScaling;
+
+            let etherealSit = (this.situationals.ethereal.enabled) ? agilityScaling * this.situationals.ethereal.level : 0;
+            let tempoSit = (this.situationals.tempo.enabled) ? agilityScaling * this.situationals.tempo.level : 0;
+            let evasionSit = (this.situationals.evasion.enabled) ? agilityScaling * this.situationals.evasion.level : 0;
+            let reflexesSit = (this.situationals.reflexes.enabled) ? agilityScaling * this.situationals.reflexes.level : 0;
+            let cloakedSit = (this.situationals.cloaked.enabled) ? agilityScaling * this.situationals.cloaked.level : 0;
+            let shieldingSit = (this.situationals.shielding.enabled) ? armorScaling * this.situationals.shielding.level : 0;
+            let poiseSit = (this.situationals.poise.enabled) ? ((this.currentHealthPercent.val >= 0.9) ? armorScaling * this.situationals.poise.level : 0) : 0;
+            let inureSit = (this.situationals.inure.enabled) ? armorScaling * this.situationals.inure.level : 0;
+            let guardSit = (this.situationals.guard.enabled) ? armorScaling * this.situationals.guard.level : 0;
+
+            let steadfastScaling = (1 - this.currentHealthPercent.val) / 0.6;
+            if(steadfastScaling > 1) steadfastScaling = 1;
+            else if (steadfastScaling < 0) steadfastScaling = 0;
+            let steadfastSit = (this.situationals.steadfast.enabled) ? steadfastScaling * armorScaling * this.situationals.steadfast.level : 0;
+
+            let sumArmorSits = shieldingSit + poiseSit + inureSit + guardSit + steadfastSit;
+            let sumAgiSits = etherealSit + tempoSit + evasionSit + reflexesSit + cloakedSit;
+            let sumSits = sumArmorSits + sumAgiSits;
+
+            situationalResistanceMultiplier *= 1 / (1 + sumSits);
+        }
+
         damageTaken.base = damageTaken.base
             * (1 - (this.tenacity * 0.005))
             * (this.extraResistanceMultiplier.val)
-            * bonusResistanceMultiplier;
+            * bonusResistanceMultiplier
+            * situationalResistanceMultiplier;
 
         damageTaken.secondwind = damageTaken.secondwind
             * (1 - (this.tenacity * 0.005))
             * (this.extraResistanceMultiplier.val)
-            * bonusResistanceMultiplier;
+            * bonusResistanceMultiplier
+            * situationalResistanceMultiplier;
 
         return damageTaken;
     }
@@ -415,62 +461,18 @@ class Stats {
         (agility > armor) ? moreAgility = true : (armor > agility) ? moreArmor = true : hasEqual = true;
         let hasNothing = (hasEqual && armor == 0);
 
-        // For situationals with 20% in mind.
-        // Capped at a total of this.situationalCap armor/agility effectiveness (20 in r1, 30 in r2-r3).
-        let situationalArmor = (this.situationals.adaptability.level > 0) ? Math.min(Math.max(agility, armor), this.situationalCap) * 0.2 : Math.min(armor, this.situationalCap) * 0.2;
-        let situationalAgility = (this.situationals.adaptability.level > 0) ? Math.min(Math.max(agility, armor), this.situationalCap) * 0.2 : Math.min(agility, this.situationalCap) * 0.2;
+        // situationals moved to calculateDamageTaken -LC
 
-        let etherealSit = (this.situationals.ethereal.enabled) ? situationalAgility * this.situationals.ethereal.level : 0;
-        let tempoSit = (this.situationals.tempo.enabled) ? situationalAgility * this.situationals.tempo.level : 0;
-        let evasionSit = (this.situationals.evasion.enabled) ? situationalAgility * this.situationals.evasion.level : 0;
-        let reflexesSit = (this.situationals.reflexes.enabled) ? situationalAgility * this.situationals.reflexes.level : 0;
-        let shieldingSit = (this.situationals.shielding.enabled) ? situationalArmor * this.situationals.shielding.level : 0;
-        let poiseSit = (this.situationals.poise.enabled) ? ((this.currentHealthPercent.val >= 0.9) ? situationalArmor * this.situationals.poise.level : 0) : 0;
-        let inureSit = (this.situationals.inure.enabled) ? situationalArmor * this.situationals.inure.level : 0;
-        let guardSit = (this.situationals.guard.enabled) ? situationalArmor * this.situationals.guard.level : 0;
-        let cloakedSit = (this.situationals.cloaked.enabled) ? situationalAgility * this.situationals.cloaked.level : 0;
+        let halfArmor = armor / 2;
+        let halfAgility = agility / 2;
 
-        let steadfastScaling = 0.33;
-        let steadfastMaxScaling = 20;
-        let steadfastLowerBound = 1 - (steadfastMaxScaling / steadfastScaling / 100);
-        let steadfastArmor = (1 - Math.max(steadfastLowerBound, Math.min(1, this.currentHealthPercent.val))) * steadfastScaling *
-            Math.min(((this.situationals.adaptability.level > 0 && moreAgility) ? agility : (moreArmor) ? armor : (this.situationals.adaptability.level == 0) ? armor : 0), this.situationalCap);
-
-        let steadfastSit = (this.situationals.steadfast.enabled) ? steadfastArmor * this.situationals.steadfast.level : 0;
-
-        let sumArmorSits = shieldingSit + poiseSit + inureSit + guardSit;
-        let sumAgiSits = etherealSit + tempoSit + evasionSit + reflexesSit + cloakedSit;
-        let sumSits = sumArmorSits + sumAgiSits;
-
-        let armorPlusSits = armor;
-        if (this.situationals.adaptability.level > 0) {
-            if (moreArmor) {
-                armorPlusSits += sumSits;
-            }
-        } else {
-            armorPlusSits += sumArmorSits;
-        }
-        let armorPlusSitsSteadfast = armorPlusSits + steadfastSit;
-
-        let agilityPlusSits = agility;
-        if (this.situationals.adaptability.level > 0) {
-            if (moreAgility) {
-                agilityPlusSits += sumSits;
-            }
-        } else {
-            agilityPlusSits += sumAgiSits;
-        }
-
-        let halfArmor = armorPlusSitsSteadfast / 2;
-        let halfAgility = agilityPlusSits / 2;
-
-        let meleeDamage = this.calculateDamageTaken(hasNothing, this.meleeProt, this.meleeFragility, 2, armorPlusSitsSteadfast, agilityPlusSits);
-        let projectileDamage = this.calculateDamageTaken(hasNothing, this.projectileProt, this.projectileFragility, 2, armorPlusSitsSteadfast, agilityPlusSits);
-        let magicDamage = this.calculateDamageTaken(hasNothing, this.magicProt, this.magicFragility, 2, armorPlusSitsSteadfast, agilityPlusSits);
-        let blastDamage = this.calculateDamageTaken(hasNothing, this.blastProt, this.blastFragility, 2, armorPlusSitsSteadfast, agilityPlusSits);
-        let fireDamage = this.calculateDamageTaken(hasNothing, this.fireProt, this.fireFragility, 2, halfArmor, halfAgility);
-        let fallDamage = this.calculateDamageTaken(hasNothing, this.fallProt, 0, 3, halfArmor, halfAgility);
-        let ailmentDamage = this.calculateDamageTaken(true, 0, 0, 0, 0, 0);
+        let meleeDamage = this.calculateDamageTaken(hasNothing, this.meleeProt, this.meleeFragility, 2, armor, agility, true);
+        let projectileDamage = this.calculateDamageTaken(hasNothing, this.projectileProt, this.projectileFragility, 2, armor, agility, true);
+        let magicDamage = this.calculateDamageTaken(hasNothing, this.magicProt, this.magicFragility, 2, armor, agility, true);
+        let blastDamage = this.calculateDamageTaken(hasNothing, this.blastProt, this.blastFragility, 2, armor, agility, true);
+        let fireDamage = this.calculateDamageTaken(hasNothing, this.fireProt, this.fireFragility, 2, halfArmor, halfAgility, false);
+        let fallDamage = this.calculateDamageTaken(hasNothing, this.fallProt, 0, 3, halfArmor, halfAgility, false);
+        let ailmentDamage = this.calculateDamageTaken(true, 0, 0, 0, 0, 0, false);
 
         let reductions = {
             melee: { base: new Percentage(100 - meleeDamage.base), secondwind: new Percentage(100 - meleeDamage.secondwind) },

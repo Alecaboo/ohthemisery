@@ -81,7 +81,7 @@ const categories = {
             "magic_fragility", "blast_fragility", "fire_fragility", "starvation", "curse_of_the_veil"]
             .map(entry => ({ name: entry, format: Formats.CURSE })),
         ...["two_handed", "curse_of_corruption", "curse_of_irreparability", "curse_of_instability", "cumbersome", "clucking",
-            "baaing", "oinking", "curse_of_ephemerality"]
+            "baaing", "oinking", "curse_of_ephemerality", "oversized"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_CURSE }))
     ],
     "water": [

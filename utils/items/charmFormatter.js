@@ -23,13 +23,14 @@ class CharmFormatter {
     static statStyle(stat, valueObj) {
         let value = valueObj.value; // hack to fix locked charms
         return (
-            (stat.includes("cooldown") && !stat.includes("reduction") && !stat.includes("recharge") && !stat.includes("cap_flat"))
+            (stat.includes("cooldown") && !stat.includes("reduction") && !stat.includes("recharge") && !stat.includes("_cap")) // need _cap because otherwise it matches esCAPe death
             || stat.includes("price")
             || (stat.includes("threshold") && !stat.includes("rejuvenation") && !stat.includes("coup") && !stat.includes("meteor"))
             || stat.includes("stacks_needed_for_activation_flat") // ok that one's a little gross I admit
             || stat.includes("self_damage")
             || stat.includes("delay")
             || stat.includes("penalty")
+            || stat.includes("requirement")
         ) ?
             (value < 0) ? "positiveCharm" : "negativeCharm" :
             (value < 0) ? "negativeCharm" : "positiveCharm";

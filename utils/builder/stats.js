@@ -54,6 +54,7 @@ class Stats {
             technique: { enabled: enabledBoxes.technique, level: 0 },
             abyssal: { enabled: enabledBoxes.abyssal, level: 0 },
             fractal: { enabled: enabledBoxes.fractal, level: 0 },
+            skyseeker: { enabled: enabledBoxes.skyseeker, level: 0 },
             
             // fake entries to never throw errors, none of these are real enchantments
             retaliation_normal: { enabled: enabledBoxes.retaliation_normal, level: 0 },
@@ -126,6 +127,7 @@ class Stats {
         let techniqueSit = (this.situationals.technique.enabled) ? 10 * this.situationals.technique.level : 0;
         let abyssalSit = (this.situationals.abyssal.enabled) ? 10 * this.situationals.abyssal.level : 0;
         let fractalSit = (this.situationals.fractal.enabled) ? 10 * this.situationals.fractal.level : 0;
+        let skyseekerSit = (this.situationals.skyseeker.enabled) ? 10 * this.situationals.skyseeker.level : 0;
         let retaliationSit = 
             this.situationals.retaliation_boss.enabled ? 65
             : this.situationals.retaliation_elite.enabled ? 50
@@ -153,6 +155,7 @@ class Stats {
         this.attackDamagePercent.add(regicideSit);
         this.attackDamagePercent.add(staminaSit);
         this.attackDamagePercent.add(abyssalSit);
+        this.attackDamagePercent.add(skyseekerSit);
         this.attackDamagePercent.add(retaliationSit);
 
         // class damage
@@ -224,6 +227,7 @@ class Stats {
         this.projectileDamagePercent.add(staminaSit);
         this.projectileDamagePercent.add(0.75 * techniqueSit); // proj technique is 7.5%*level
         this.projectileDamagePercent.add(abyssalSit);
+        this.projectileDamagePercent.add(skyseekerSit);
         this.projectileDamagePercent.add(retaliationSit * 0.5);
 
         // class damage
@@ -257,6 +261,7 @@ class Stats {
         this.magicDamagePercent.add(techniqueSit);
         this.magicDamagePercent.add(abyssalSit);
         this.magicDamagePercent.add(fractalSit);
+        this.magicDamagePercent.add(skyseekerSit);
         this.magicDamagePercent.add(retaliationSit * 0.5);
         if (this.fullItemData.mainhand?.stats?.alchemical_utensil) {
             this.magicDamagePercent.add(firstStrikeSit);

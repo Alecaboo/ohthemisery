@@ -43,6 +43,7 @@ const enabledBoxes = {
     technique: false,
     abyssal: false,
     fractal: false,
+    skyseeker: false,
     retaliation_normal: false,
     retaliation_elite: false,
     retaliation_boss: false
@@ -79,6 +80,7 @@ const situationalPercentDamage = [
     "technique",
     "abyssal",
     "fractal",
+    "skyseeker",
     "retaliation_normal",
     "retaliation_elite",
     "retaliation_boss"

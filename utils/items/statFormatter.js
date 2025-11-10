@@ -64,9 +64,9 @@ const categories = {
     ],
     "ranged": [
         ...["quick_charge", "point_blank", "sniper", "piercing", "retrieval",
-            "punch", "recoil", "explosive", "multi-load"]
+            "punch", "recoil", "explosive", "multi-load", "skyseeker", "harpoon"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT })),
-        ...["multishot"]
+        ...["multishot", "kinetic_loading"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_ENCHANT }))
     ],
     "specialist": [

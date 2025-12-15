@@ -287,7 +287,8 @@ function generateClassAbilityBuffCheckboxes(gameClass, buffCheckboxChanged){
 function parseSkillString(skillString) {
     let parts = skillString.split("_");
     let result = {};
-    result.region = parseInt(parts[0]);
+    console.log(skillString, parts);
+    result.region = parseInt(parts[0].substring(7)); // remove "skills=" from first part
     result.class = parseInt(parts[1]);
     result.spec = parseInt(parts[2]);
     result.skills = [];
@@ -445,6 +446,12 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         return { "value": name, "label": removeMasterworkFromName(name) };
     }
 
+    function getRegion() {
+        if (!build) return undefined
+        let regionNumber = parseInt(decodeURI(build).split("&skills=")[1].charAt(0));
+        return regions[regionNumber - 1];
+    }
+
     function makeBuildString(charmsOverride, dataOverride) {
         let data = (dataOverride) ? dataOverride : new FormData(formRef.current).entries();
         let buildString = "";
@@ -464,12 +471,13 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         if(buildName != "Monumenta Builder") buildString += `&name=${encodeURIComponent(buildName)}`;
 
         if(JSON.stringify(skillPoints) != JSON.stringify(emptySkills)) {
+            console.log(skillPoints);
             buildString += `&skills=${skillPoints.region}_${skillPoints.class}_${skillPoints.spec}_`;
-            for (skill of skillPoints.skills) {
+            for (let skill of skillPoints.skills) {
                 buildString += skill;
             }
             buildString += "_";
-            for (specSkill of skillPoints.specSkills) {
+            for (let specSkill of skillPoints.specSkills) {
                 buildString += specSkill;
             }
         }
@@ -623,6 +631,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         const tempStats = recalcBuild(itemNames, itemData);
         setStats(tempStats);
         update(tempStats);
+        skillPoints.region = itemNames.region; // itemnames is a misleading name this contains like the whole form lol
         router.push(`/builder?${makeBuildString(null, entries)}`, `/builder/${makeBuildString(null, entries)}`, { shallow: true });
     }
 
@@ -694,7 +703,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                         id="region"
                         name="region"
                         options={regions} 
-                        defaultValue={{ value: 3, label: "Ring" }}
+                        defaultValue={getRegion()}
                         theme={theme => ({
                             ...theme,
                             borderRadius: 0,

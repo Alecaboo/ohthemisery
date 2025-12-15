@@ -15,6 +15,8 @@ import CharmShortener from '../../utils/builder/charmShortener';
 
 const emptyBuild = { mainhand: "None", offhand: "None", helmet: "None", chestplate: "None", leggings: "None", boots: "None" };
 
+const emptySkills = JSON.stringify({region: 3, class: 0, spec: 0, skills: [0,0,0,0,0,0,0,0], specSkills: [0,0,0]});
+
 const enabledBoxes = {
     // Situational Defense
     shielding: false,
@@ -282,11 +284,32 @@ function generateClassAbilityBuffCheckboxes(gameClass, buffCheckboxChanged){
     return temp;
 }
 
+function parseSkillString(skillString) {
+    let parts = skillString.split("_");
+    let result = {};
+    result.region = parseInt(parts[0]);
+    result.class = parseInt(parts[1]);
+    result.spec = parseInt(parts[2]);
+    result.skills = [];
+    for (let i=0; i<8; i++) {
+        result.skills.push(parseInt(parts[3].charAt(i)));
+    }
+    result.specSkills = [];
+    for (let i=0; i<3; i++) {
+        result.specSkills.push(parseInt(parts[4].charAt(i)));
+    }
+    return result;
+}
+
 export default function BuildForm({ update, build, parentLoaded, itemData, itemsToDisplay, buildName, updateLink, setUpdateLink }) {
     const [stats, setStats] = React.useState({});
     const [charms, setCharms] = React.useState([]);
     const [urlCharms, setUrlCharms] = React.useState([]);
     const [gameClass, setGameClass] = React.useState("none"); // "class" is a reserved word
+    const [skillPoints, setSkillPoints] = React.useState({region: 3, class: 0, spec: 0, skills: [0,0,0,0,0,0,0,0], specSkills: [0,0,0]});
+    const MAX_SKILLS = 10;
+    const MAX_SPEC_SKILLS = 4;
+    const MAX_ENHANCE = 3;
 
     const [updateLoaded, setUpdateLoaded] = React.useState(false);
 
@@ -324,6 +347,10 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                 // so it's passing a list of charm objects, not charm names
                 // idk why it worked before and stopped working now, but this fixes it
                 setCharms(charmList.map(name => itemData[name]));
+            }
+            let skillString = buildParts.find(str => str.includes("skills="));
+            if (skillString) {
+                setSkillPoints(parseSkillString(skillString));
             }
             const tempStats = recalcBuild(itemNames, itemData);
             setStats(tempStats);
@@ -435,6 +462,17 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         }
 
         if(buildName != "Monumenta Builder") buildString += `&name=${encodeURIComponent(buildName)}`;
+
+        if(JSON.stringify(skillPoints) != JSON.stringify(emptySkills)) {
+            buildString += `&skills=${skillPoints.region}_${skillPoints.class}_${skillPoints.spec}_`;
+            for (skill of skillPoints.skills) {
+                buildString += skill;
+            }
+            buildString += "_";
+            for (specSkill of skillPoints.specSkills) {
+                buildString += specSkill;
+            }
+        }
 
         return buildString;
     }

@@ -15,8 +15,6 @@ import CharmShortener from '../../utils/builder/charmShortener';
 
 const emptyBuild = { mainhand: "None", offhand: "None", helmet: "None", chestplate: "None", leggings: "None", boots: "None" };
 
-const emptySkills = JSON.stringify({region: 3, class: 0, spec: 0, skills: [0,0,0,0,0,0,0,0], specSkills: [0,0,0]});
-
 const enabledBoxes = {
     // Situational Defense
     shielding: false,
@@ -314,9 +312,11 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
     const [updateLoaded, setUpdateLoaded] = React.useState(false);
 
     let skillString = decodeURI(build).split("&").find(part => part.split("=")[0] == "skills");
-    let tempSkills = JSON.parse(emptySkills);
+    let tempSkills;
     if (skillString) {
         tempSkills = parseSkillString(skillString);
+    } else {
+        tempSkills = {region: 3, class: 0, spec: 0, skills: [0,0,0,0,0,0,0,0], specSkills: [0,0,0]}
     }
     const [skillPoints, setSkillPoints] = React.useState(tempSkills);
     
@@ -448,11 +448,19 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         return { "value": name, "label": removeMasterworkFromName(name) };
     }
 
-    function getRegion() {
-        if (!build) return undefined;
-        if (skillPoints.region) return regions[skillPoints.region - 1];
-        let regionNumber = parseInt(decodeURI(build).split("&skills=")[1].charAt(0));
-        return regions[regionNumber - 1];
+    function getClassName(id) {
+        for (let class_ of classData.classes) {
+            if (class_.classId == id) return class_.className
+        }
+        return "None"
+    }
+
+    function getClassId(name) {
+        for (let class_ of classData.classes) {
+            console.log(class_);
+            if (class_.className == name) return class_.classId;
+        }
+        return 0
     }
 
     function makeBuildString(charmsOverride, dataOverride) {
@@ -473,7 +481,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
 
         if(buildName != "Monumenta Builder") buildString += `&name=${encodeURIComponent(buildName)}`;
 
-        if(JSON.stringify(skillPoints) != JSON.stringify(emptySkills)) {
+        if(JSON.stringify(skillPoints) != JSON.stringify({region: 3, class: 0, spec: 0, skills: [0,0,0,0,0,0,0,0], specSkills: [0,0,0]})) {
             console.log(skillPoints);
             buildString += `&skills=${skillPoints.region}_${skillPoints.class}_${skillPoints.spec}_`;
             for (let skill of skillPoints.skills) {
@@ -655,7 +663,8 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         const tempStats = recalcBuild(itemNames, itemData);
         setStats(tempStats);
         update(tempStats);
-        skillPoints.class = 1 + Math.floor(Math.random() * 8);
+        skillPoints.class = getClassId(newValue.value);
+        console.log(newValue.value);
         router.push(`/builder?${makeBuildString()}`, `/builder/${makeBuildString()}`, { shallow: true });
     }
 
@@ -708,7 +717,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                         id="region"
                         name="region"
                         options={regions} 
-                        defaultValue={getRegion()}
+                        defaultValue={regions[skillPoints.region - 1]}
                         theme={theme => ({
                             ...theme,
                             borderRadius: 0,
@@ -730,6 +739,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                         noneOption={true}
                         sortableStats={classes}
                         onChange={classChanged}
+                        defaultValue={getClassName(skillPoints.class)}
                     />
                 </div>
             </div>

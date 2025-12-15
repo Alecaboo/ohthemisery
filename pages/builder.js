@@ -219,7 +219,7 @@ export default function Builder({ build, itemData, classData }) {
                                             <p className={`mb-1 mt-1 ${condition ? styles.grayedout : ""}`}><b><TranslatableText identifier={stat.name}></TranslatableText>: </b>{itemsToDisplay[stat.type]}{stat.percent ? "%" : ""}</p>
                                         </div> : ""
                                 })
-                                console.log(itemsToDisplay);
+                                // console.log(itemsToDisplay);
                                 if(itemsToDisplay.instability) {
                                     let avg = 0;
                                     unstableEHPTypes.forEach(t => avg += Number(itemsToDisplay[t]))

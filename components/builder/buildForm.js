@@ -285,7 +285,6 @@ function generateClassAbilityBuffCheckboxes(gameClass, buffCheckboxChanged){
 function parseSkillString(skillString) {
     let parts = skillString.split("_");
     let result = {};
-    console.log(skillString, parts);
     result.region = parseInt(parts[0].substring(7)); // remove "skills=" from first part
     result.class = parseInt(parts[1]);
     result.spec = parseInt(parts[2]);
@@ -457,7 +456,6 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
 
     function getClassId(name) {
         for (let class_ of classData.classes) {
-            console.log(class_);
             if (class_.className == name) return class_.classId;
         }
         return 0
@@ -482,7 +480,6 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         if(buildName != "Monumenta Builder") buildString += `&name=${encodeURIComponent(buildName)}`;
 
         if(JSON.stringify(skillPoints) != JSON.stringify({region: 3, class: 0, spec: 0, skills: [0,0,0,0,0,0,0,0], specSkills: [0,0,0]})) {
-            console.log(skillPoints);
             buildString += `&skills=${skillPoints.region}_${skillPoints.class}_${skillPoints.spec}_`;
             for (let skill of skillPoints.skills) {
                 buildString += skill;
@@ -664,7 +661,6 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         setStats(tempStats);
         update(tempStats);
         skillPoints.class = getClassId(newValue.value);
-        console.log(newValue.value);
         router.push(`/builder?${makeBuildString()}`, `/builder/${makeBuildString()}`, { shallow: true });
     }
 
@@ -674,6 +670,10 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         router.push(`/builder?${makeBuildString()}`, `/builder/${makeBuildString()}`, { shallow: true });
         setUpdateLink(false);
     }
+
+    // stuff for class checkbox
+    let options = classData.classes.map(class_ => ({value: class_.className, label: class_.className}));
+    let defaultOption = options.find(option => getClassId(option.value) == skillPoints.class);
 
     return (
         <form ref={formRef} onSubmit={sendUpdate} onReset={resetForm} id="buildForm">
@@ -737,9 +737,9 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                     <SelectInput
                         name="class"
                         noneOption={true}
-                        sortableStats={classes}
+                        sortableStats={classData.classes.map(class_ => ({value: class_.className, label: class_.className}))}
                         onChange={classChanged}
-                        defaultValue={getClassName(skillPoints.class)}
+                        default={classData.classes.map(class_ => ({value: class_.className, label: class_.className})).find(option => getClassId(option.value) == skillPoints.class)}
                     />
                 </div>
             </div>

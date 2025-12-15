@@ -47,7 +47,7 @@ function getBuildName(build, builderHeaderText, parentLoaded) {
     return buildName + " - ";
 }
 
-export default function Builder({ build, itemData }) {
+export default function Builder({ build, itemData, classData }) {
     const [builderHeaderText, setBuilderHeaderText] = React.useState("Monumenta Builder");
     const [itemsToDisplay, setItemsToDisplay] = React.useState({});
 
@@ -156,7 +156,7 @@ export default function Builder({ build, itemData }) {
             </Head>
             <main>
                 <BuilderHeader text={builderHeaderText} setText={setBuilderHeaderText} parentLoaded={parentLoaded} build={build} setUpdateLink={setUpdateLink}/>
-                <BuildForm update={change} build={build} parentLoaded={parentLoaded} itemData={itemData} itemsToDisplay={itemsToDisplay} buildName={builderHeaderText} updateLink={updateLink} setUpdateLink={setUpdateLink}></BuildForm>
+                <BuildForm update={change} build={build} parentLoaded={parentLoaded} itemData={itemData} itemsToDisplay={itemsToDisplay} buildName={builderHeaderText} updateLink={updateLink} setUpdateLink={setUpdateLink} classData={classData}></BuildForm>
                 <div className="row justify-content-center mb-2">
                     <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.misc"></TranslatableText></h5>
@@ -302,6 +302,18 @@ export async function getServerSideProps(context) {
     } else {
         itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
     }
+    let classData = null;
+    if (AuthProvider.isUsingApi()) {
+        await Axios.get("https://api.playmonumenta.com/skills", {headers: {'Authorization': AuthProvider.getAuthorizationData()}})
+            .then(response => {
+                classData = response.data;
+            })
+            .catch(async (error) => {
+                console.error("Fetch from Monumenta class API failed, class-related functionality will not work.");
+            })
+    } else {
+        classData = JSON.parse(await Fs.readFile('public/items/classData.json'));
+    }
     let build = context.query?.build ? context.query.build : null;
 
     // hardcoded exception for Truest North
@@ -351,7 +363,8 @@ export async function getServerSideProps(context) {
     return {
         props: {
             build,
-            itemData
+            itemData,
+            classData
         }
     };
 }

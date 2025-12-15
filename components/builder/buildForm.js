@@ -302,18 +302,24 @@ function parseSkillString(skillString) {
     return result;
 }
 
-export default function BuildForm({ update, build, parentLoaded, itemData, itemsToDisplay, buildName, updateLink, setUpdateLink }) {
+export default function BuildForm({ update, build, parentLoaded, itemData, itemsToDisplay, buildName, updateLink, setUpdateLink, classData }) {
     const [stats, setStats] = React.useState({});
     const [charms, setCharms] = React.useState([]);
     const [urlCharms, setUrlCharms] = React.useState([]);
     const [gameClass, setGameClass] = React.useState("none"); // "class" is a reserved word
-    const [skillPoints, setSkillPoints] = React.useState({region: 3, class: 0, spec: 0, skills: [0,0,0,0,0,0,0,0], specSkills: [0,0,0]});
     const MAX_SKILLS = 10;
     const MAX_SPEC_SKILLS = 4;
     const MAX_ENHANCE = 3;
 
     const [updateLoaded, setUpdateLoaded] = React.useState(false);
 
+    let skillString = decodeURI(build).split("&").find(part => part.split("=")[0] == "skills");
+    let tempSkills = JSON.parse(emptySkills);
+    if (skillString) {
+        tempSkills = parseSkillString(skillString);
+    }
+    const [skillPoints, setSkillPoints] = React.useState(tempSkills);
+    
     function sendUpdate(event) {
         event.preventDefault();
         const itemNames = Object.fromEntries(new FormData(event.target).entries());
@@ -348,10 +354,6 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                 // so it's passing a list of charm objects, not charm names
                 // idk why it worked before and stopped working now, but this fixes it
                 setCharms(charmList.map(name => itemData[name]));
-            }
-            let skillString = buildParts.find(str => str.includes("skills="));
-            if (skillString) {
-                setSkillPoints(parseSkillString(skillString));
             }
             const tempStats = recalcBuild(itemNames, itemData);
             setStats(tempStats);
@@ -447,7 +449,8 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
     }
 
     function getRegion() {
-        if (!build) return undefined
+        if (!build) return undefined;
+        if (skillPoints.region) return regions[skillPoints.region - 1];
         let regionNumber = parseInt(decodeURI(build).split("&skills=")[1].charAt(0));
         return regions[regionNumber - 1];
     }
@@ -652,6 +655,8 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         const tempStats = recalcBuild(itemNames, itemData);
         setStats(tempStats);
         update(tempStats);
+        skillPoints.class = 1 + Math.floor(Math.random() * 8);
+        router.push(`/builder?${makeBuildString()}`, `/builder/${makeBuildString()}`, { shallow: true });
     }
 
     if(updateLink){

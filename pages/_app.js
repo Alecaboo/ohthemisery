@@ -2,9 +2,6 @@ import React from 'react';
 import Footer from '../components/footer';
 import Header from '../components/header';
 import '../styles/globals.css'
-import '../public/spritesheets/_itemsheet.css';
-import '../public/spritesheets/_charmsheet.css';
-import '../public/spritesheets/_minecraft.css';
 
 export const LanguageContext = React.createContext({
   lang: 'en',

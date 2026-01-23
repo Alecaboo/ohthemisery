@@ -296,11 +296,11 @@ export async function getServerSideProps(context) {
                     })
                     .catch(async (error) => {
                         console.error("Fetch from U5B's Github failed. Falling back to stored items json.");
-                        itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
+                        itemData = JSON.parse(await Fs.readFile('public/items/items.json'));
                     })
             })
     } else {
-        itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
+        itemData = JSON.parse(await Fs.readFile('public/items/items.json'));
     }
     let build = context.query?.build ? context.query.build : null;
 

@@ -2,6 +2,7 @@ import Enchants from './enchants';
 import styles from '../../styles/Items.module.css';
 import TranslatableText from '../translatableText';
 import React from 'react';
+import { loadItemSpriteMap, getMappedSpriteClass } from '../../utils/items/spritesheetMap';
 
 function camelCase(str, upper) {
     if (!str) return "";
@@ -21,28 +22,6 @@ function getItemsheetClass(itemName) {
     return `monumenta-${camelCase(itemName.replaceAll("-", "").replaceAll(".", "").replaceAll("'", "").replace(/\(.*\)/g, '').trim().replaceAll(" ", "-").replaceAll("_", "-").toLowerCase(), true)}`;
 }
 
-function doesStyleExist(className) {
-    try {
-        let styleSheets = document.styleSheets;
-        let styleSheetsLength = styleSheets.length;
-        for (let i = 0; i < styleSheetsLength; i++){
-            let classes = styleSheets[i].cssRules;
-            if (!classes) {
-                continue;
-            }
-            
-            for (let x = 0; x < classes.length; x++) {
-                if (classes[x].selectorText == `.${className}`) {
-                    return true;
-                }
-            }
-        }
-    } catch (e) {
-        return false;
-    }
-    return false;
-}
-
 function doesNameContainNonASCII(name) {
     for (let i = 0; i < name.length; i++) {
         if (name.charCodeAt(i) > 127) {
@@ -56,6 +35,7 @@ export default function ItemTile(data) {
     const item = data.item
     const [cssClass, setCssClass] = React.useState(getItemsheetClass(item.name));
     const [baseBackgroundClass, setBaseBackgroundClass] = React.useState("monumenta-items");
+    const [spriteMap, setSpriteMap] = React.useState(null);
 
     // If the item name has accented characters, they are actually not present in the item's name property,
     // but they are present in the item's key. In that case, set the name to the key.
@@ -64,15 +44,37 @@ export default function ItemTile(data) {
     }
 
     React.useEffect(() => {
-        if (!doesStyleExist(getItemsheetClass(item.name))) {
-            // The item doesn't have its own texture on the spritesheet, and must be defaulted to a minecraft texture.
-            setBaseBackgroundClass("minecraft");
-            setCssClass(`minecraft-${item['base_item'].replaceAll(" ", "-").replaceAll("_", "-").toLowerCase()}`);
-        } else {
+        let active = true;
+        loadItemSpriteMap().then((map) => {
+            if (active) {
+                setSpriteMap(map);
+            }
+        });
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    React.useEffect(() => {
+        // Prefer the explicit mapping generated from the texture pack.
+        const mappedClass = getMappedSpriteClass(spriteMap, item.name);
+        if (mappedClass) {
+            setBaseBackgroundClass("monumenta-items");
+            setCssClass(mappedClass);
+            return;
+        }
+
+        // While the sprite map is still loading, fall back to the legacy class-name heuristic.
+        if (!spriteMap) {
             setBaseBackgroundClass("monumenta-items");
             setCssClass(getItemsheetClass(item.name));
+            return;
         }
-    }, [item]);
+
+        // Otherwise, default to a minecraft texture.
+        setBaseBackgroundClass("minecraft");
+        setCssClass(`minecraft-${item['base_item'].replaceAll(" ", "-").replaceAll("_", "-").toLowerCase()}`);
+    }, [item, spriteMap]);
 
     return (
         <div className={`${styles.itemTile} ${data.hidden ? styles.hidden : ""}`}>

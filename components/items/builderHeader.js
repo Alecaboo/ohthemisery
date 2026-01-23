@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from '../../styles/BuilderHeader.module.css';
 import EditIcon from '@mui/icons-material/Edit';
+import { decodeBuildName } from '../../utils/builder/buildUrlCodec';
 
 export default function BuilderHeader(data) {
     let text = data.text;
@@ -13,11 +14,8 @@ export default function BuilderHeader(data) {
     React.useEffect(() => {
         if (data.parentLoaded) {
             let tempName = "Monumenta Builder";
-            if(data.build) {
-                let buildParts = (data.build)[0].split("&");
-                tempName = (buildParts.find(str => str.includes("name="))?.split("name=")[1]);
-                if(tempName === undefined) tempName = "Monumenta Builder";
-            }
+            const name = decodeBuildName(data.build);
+            if (name) tempName = name;
             setText(decodeURIComponent(tempName));
             setTempText(decodeURIComponent(tempName));
             setLoaded(true);
@@ -61,7 +59,7 @@ export default function BuilderHeader(data) {
     function getPlaceholderBuildName() {
         // temporarily puts the name until useState loads, everything else is populated, etc
         try {
-            return decodeURIComponent((data.build)[0].split("&").find(str => str.includes("name="))?.split("name=")[1] || "Monumenta Builder")
+            return decodeBuildName(data.build) || "Monumenta Builder";
         } catch (e) {
             return "Monumenta Builder"
         }

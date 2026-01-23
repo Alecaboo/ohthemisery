@@ -12,6 +12,7 @@ import TranslatableText from '../translatableText';
 import ListSelector from './listSelector';
 import CharmSelector from './charmSelector';
 import CharmShortener from '../../utils/builder/charmShortener';
+import { decodeBuildParam, encodeBuildParam, normalizeBuildParam } from '../../utils/builder/buildUrlCodec';
 
 const emptyBuild = { mainhand: "None", offhand: "None", helmet: "None", chestplate: "None", leggings: "None", boots: "None" };
 
@@ -296,12 +297,15 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         const tempStats = recalcBuild(itemNames, itemData);
         setStats(tempStats);
         update(tempStats);
-        router.push(`/builder?${makeBuildString()}`, `/builder/${makeBuildString()}`, { shallow: true });
+        const token = makeBuildString();
+        router.push(`/builder?build=${encodeURIComponent(token)}`, `/builder/${token}`, { shallow: true });
     }
 
     React.useEffect(() => {
         if (parentLoaded && build) {
-            let buildParts = decodeURI(build).split("&");
+            const decoded = decodeBuildParam(build, itemData);
+            if (!decoded) return;
+            let buildParts = decodeURI(decoded).split("&");
             let itemNames = {
                 mainhand: (buildParts.find(str => str.includes("m="))?.split("m=")[1]),
                 offhand: (buildParts.find(str => str.includes("o="))?.split("o=")[1]),
@@ -362,10 +366,10 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         let offhands = ["offhand", "offhand shield", "offhand sword"];
         let actualItemType = (mainhands.includes(itemType.toLowerCase())) ? "mainhand" : (offhands.includes(itemType.toLowerCase())) ? "offhand" : itemType.toLowerCase();
 
-        const manualBuildString = encodeURI(decodeURI(makeBuildString()).replace(newBuild[actualItemType.toLowerCase()], `${newActiveItem.name}-${newActiveItem.masterwork}`));
         newBuild[actualItemType.toLowerCase()] = `${newActiveItem.name}-${newActiveItem.masterwork}`;
         itemRefs[actualItemType.toLowerCase()].current.setValue({ "value": `${newActiveItem.name}-${newActiveItem.masterwork}`, "label": newActiveItem.name });
-        router.push(`/builder?${manualBuildString}`, `/builder/${manualBuildString}`, { shallow: true });
+        const token = makeBuildString(null, Object.entries(newBuild));
+        router.push(`/builder?build=${encodeURIComponent(token)}`, `/builder/${token}`, { shallow: true });
 
         const tempStats = recalcBuild(newBuild, itemData)
         setStats(tempStats);
@@ -408,8 +412,9 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
     }
 
     function getEquipName(type) {
-        if (!build) return undefined
-        let buildParts = decodeURI(build).split("&");
+        const decoded = decodeBuildParam(build, itemData);
+        if (!decoded) return undefined
+        let buildParts = decodeURI(decoded).split("&");
         let allowedTypes = ["mainhand", "offhand", "helmet", "chestplate", "leggings", "boots"]
         let name = (allowedTypes.includes(type)) ? buildParts.find(str => str.includes(`${type[0]}=`))?.split(`${type[0]}=`)[1] : "None";
         if (!Object.keys(itemData).includes(name)) {
@@ -419,24 +424,37 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
     }
 
     function makeBuildString(charmsOverride, dataOverride) {
-        let data = (dataOverride) ? dataOverride : new FormData(formRef.current).entries();
-        let buildString = "";
-        let keysToShare = ["mainhand", "offhand", "helmet", "chestplate", "leggings", "boots"];
-        for (const [key, value] of data) {
-            buildString += (keysToShare.includes(key)) ? `${key[0]}=${value.replaceAll(" ", "%20")}&` : "";
-        }
+        const keysToShare = ["mainhand", "offhand", "helmet", "chestplate", "leggings", "boots"];
 
-        let charmsToLookAt = (charmsOverride) ? charmsOverride : charms;
-
-        if (charmsToLookAt.length == 0) {
-            buildString += "charm=None";
+        let entries;
+        if (dataOverride) {
+            if (typeof dataOverride[Symbol.iterator] === 'function') {
+                entries = Array.from(dataOverride);
+            } else {
+                entries = Object.entries(dataOverride);
+            }
         } else {
-            buildString += `charm=${CharmShortener.shortenCharmList(charmsToLookAt)}`;
+            entries = Array.from(new FormData(formRef.current).entries());
         }
 
-        if(buildName != "Monumenta Builder") buildString += `&name=${encodeURIComponent(buildName)}`;
+        let legacy = "";
+        for (const [key, value] of entries) {
+            if (!keysToShare.includes(key)) continue;
+            legacy += `${key[0]}=${encodeURIComponent(String(value))}&`;
+        }
 
-        return buildString;
+        const charmsToLookAt = charmsOverride ? charmsOverride : charms;
+        if (!charmsToLookAt || charmsToLookAt.length === 0) {
+            legacy += "charm=None";
+        } else {
+            legacy += `charm=${encodeURIComponent(CharmShortener.shortenCharmList(charmsToLookAt))}`;
+        }
+
+        if (buildName != "Monumenta Builder") {
+            legacy += `&name=${encodeURIComponent(buildName)}`;
+        }
+
+        return encodeBuildParam(legacy);
     }
 
     function checkboxChanged(event) {
@@ -566,7 +584,8 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
     function updateCharms(charmNames) {
         let charmData = charmNames.map(name => itemData[name]);
         setCharms(charmData);
-        router.push(`/builder?${makeBuildString(charmData)}`, `/builder/${makeBuildString(charmData)}`, { shallow: true });
+        const token = makeBuildString(charmData);
+        router.push(`/builder?build=${encodeURIComponent(token)}`, `/builder/${token}`, { shallow: true });
     }
 
     function itemChanged(newValue, actionMeta) {
@@ -585,7 +604,8 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         const tempStats = recalcBuild(itemNames, itemData);
         setStats(tempStats);
         update(tempStats);
-        router.push(`/builder?${makeBuildString(null, entries)}`, `/builder/${makeBuildString(null, entries)}`, { shallow: true });
+        const token = makeBuildString(null, entries);
+        router.push(`/builder?build=${encodeURIComponent(token)}`, `/builder/${token}`, { shallow: true });
     }
 
     function classChanged(newValue, actionMeta) {
@@ -610,7 +630,8 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
     if(updateLink){
         // awkward signal thing to update the link from the builderheader to get the name properly fixed up
         // don't need to worry about updating the build string since it auto updates on dropdown change now
-        router.push(`/builder?${makeBuildString()}`, `/builder/${makeBuildString()}`, { shallow: true });
+        const token = makeBuildString();
+        router.push(`/builder?build=${encodeURIComponent(token)}`, `/builder/${token}`, { shallow: true });
         setUpdateLink(false);
     }
 

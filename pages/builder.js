@@ -8,11 +8,13 @@ import Fs from 'fs/promises';
 import extras from '../public/items/extras.json';
 import BuilderHeader from '../components/items/builderHeader';
 import styles from '../styles/Items.module.css'
+import { decodeBuildParam } from '../utils/builder/buildUrlCodec';
 
 function getLinkPreviewDescription(build, itemData) {
-    if (!build) return ""
+    const decoded = decodeBuildParam(build, itemData);
+    if (!decoded) return "";
     let res = "";
-    const buildParts = decodeURI(build).split("&");
+    const buildParts = decodeURI(decoded).split("&");
     let itemNames = {
         mainhand: (buildParts.find(str => str.includes("m="))?.split("m=")[1]),
         offhand: (buildParts.find(str => str.includes("o="))?.split("o=")[1]),
@@ -32,15 +34,16 @@ function getLinkPreviewDescription(build, itemData) {
     return res;
 }
 
-function getBuildName(build, builderHeaderText, parentLoaded) {
+function getBuildName(build, builderHeaderText, parentLoaded, itemData) {
     // if the page hasn't fully loaded yet, get it from the url (since builderheadertext is still default)
     // if the page has been loaded and builderheadertext is undefined, get it from the url
     // otherwise get it from builderheadertext
     if(parentLoaded && builderHeaderText === "Monumenta Builder") return "";
     if(parentLoaded && builderHeaderText !== undefined) return builderHeaderText + " - ";
     // console.log("getting build name from ",build)
-    if (!build) return "";
-    const buildParts = build[0].split("&");
+    const decoded = decodeBuildParam(build, itemData);
+    if (!decoded) return "";
+    const buildParts = decoded.split("&");
     let buildName = buildParts.find(str => str.includes("name="))?.split("name=")[1];
     if(buildName === undefined) return "";
     buildName = decodeURIComponent(buildName);
@@ -148,7 +151,7 @@ export default function Builder({ build, itemData }) {
     return (
         <div className="container-fluid">
             <Head>
-                <title>{getBuildName(build, builderHeaderText, parentLoaded) + "Monumenta Builder"}</title>
+                <title>{getBuildName(build, builderHeaderText, parentLoaded, itemData) + "Monumenta Builder"}</title>
                 <meta property="og:site_name" content="ODE TO MISERY" />
                 <meta property="og:image" content="/favicon.ico" />
                 <meta name="description" content={`${getLinkPreviewDescription(build, itemData)}`} />

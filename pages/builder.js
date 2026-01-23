@@ -154,11 +154,11 @@ export default function Builder({ build, itemData }) {
                 <meta name="description" content={`${getLinkPreviewDescription(build, itemData)}`} />
                 <meta name="keywords" content="Monumenta, Minecraft, MMORPG, Items, Builder" />
             </Head>
-            <main>
+            <main className={styles.builderPage}>
                 <BuilderHeader text={builderHeaderText} setText={setBuilderHeaderText} parentLoaded={parentLoaded} build={build} setUpdateLink={setUpdateLink}/>
                 <BuildForm update={change} build={build} parentLoaded={parentLoaded} itemData={itemData} itemsToDisplay={itemsToDisplay} buildName={builderHeaderText} updateLink={updateLink} setUpdateLink={setUpdateLink}></BuildForm>
                 <div className="row justify-content-center mb-2">
-                    <div className="col-auto text-center border border-dark mx-2 py-2">
+                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.misc"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -170,7 +170,7 @@ export default function Builder({ build, itemData }) {
                             )
                         }
                     </div>
-                    <div className="col-auto text-center border border-dark mx-2 py-2">
+                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.health"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -182,7 +182,7 @@ export default function Builder({ build, itemData }) {
                             )
                         }
                     </div>
-                    <div className="col-auto text-center border border-dark mx-2 py-2">
+                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.damageReduction"></TranslatableText></h5>
                         <h6 className="text-center fw-bold"><TranslatableText identifier="builder.statCategories.damageReduction.sub"></TranslatableText></h6>
                         {
@@ -194,7 +194,7 @@ export default function Builder({ build, itemData }) {
                             )
                         }
                     </div>
-                    <div className="col-auto text-center border border-dark mx-2 py-2">
+                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.damageReductionHealthNormalized"></TranslatableText></h5>
                         <h6 className="text-center fw-bold"><TranslatableText identifier="builder.statCategories.damageReductionHealthNormalized.sub"></TranslatableText></h6>
                         {
@@ -206,7 +206,7 @@ export default function Builder({ build, itemData }) {
                             )
                         }
                     </div>
-                    <div className="col-auto text-center border border-dark mx-2 py-2">
+                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.effectiveHealth"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -232,7 +232,7 @@ export default function Builder({ build, itemData }) {
                             })()
                         }
                     </div>
-                    <div className="col-auto text-center border border-dark mx-2 py-2">
+                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.melee"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -245,7 +245,7 @@ export default function Builder({ build, itemData }) {
                             })
                         }
                     </div>
-                    <div className="col-auto text-center border border-dark mx-2 py-2">
+                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.projectile"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -258,7 +258,7 @@ export default function Builder({ build, itemData }) {
                             })
                         }
                     </div>
-                    <div className="col-auto text-center border border-dark mx-2 py-2">
+                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.magic"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {

@@ -1,0 +1,80 @@
+.footer {
+    margin-top: 18px;
+    padding: 16px 14px;
+    border-top: 1px solid var(--glass-border);
+    background: var(--glass-1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.text {
+    color: var(--text-2);
+}
+
+.text b {
+    color: var(--text-1);
+}
+
+.links {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-1);
+    text-decoration: none;
+    transition: filter 150ms ease, transform 75ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+
+.link:hover {
+    border-color: var(--control-border-hover);
+    background: var(--glass-2);
+    filter: brightness(115%);
+}
+
+.link:active {
+    transform: translateY(1px);
+}
+
+.vercel {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+}
+
+.logo {
+    height: 1em;
+}
+
+/* next/image renders an <img> under the hood; invert it for dark UI. */
+.logo :global(img) {
+    filter: invert(1);
+    margin-bottom: 10px;
+}
+
+:global(html[data-theme="light"]) .logo :global(img) {
+    filter: none;
+}
+
+@media (max-width: 600px) {
+    .inner {
+        justify-content: center;
+        text-align: center;
+    }
+}

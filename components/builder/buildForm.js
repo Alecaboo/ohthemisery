@@ -657,17 +657,32 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                         name="region"
                         options={regions} 
                         defaultValue={{ value: 3, label: "Ring" }}
+                        menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                        menuPosition="fixed"
                         theme={theme => ({
                             ...theme,
-                            borderRadius: 0,
+                            borderRadius: 10,
                             colors: {
                                 ...theme.colors,
-                                primary: "#bbbbbb",
-                                primary25: "#2a2a2a",
-                                neutral0: "black",
-                                neutral80: "white"
+                                primary: "var(--text-1)",
+                                primary25: "var(--surface-2)",
+                                neutral0: "var(--glass-1)",
+                                neutral5: "var(--glass-2)",
+                                neutral10: "var(--glass-2)",
+                                neutral20: "var(--control-border)",
+                                neutral30: "var(--control-border-hover)",
+                                neutral60: "var(--text-2)",
+                                neutral80: "var(--text-1)"
                             },
                         })} 
+                        styles={{
+                            container: (base) => ({ ...base, width: '100%' }),
+                            control: (base) => ({ ...base, minHeight: 42, height: 42 }),
+                            valueContainer: (base) => ({ ...base, height: 42, paddingTop: 0, paddingBottom: 0 }),
+                            indicatorsContainer: (base) => ({ ...base, height: 42 }),
+                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                            menu: (base) => ({ ...base, zIndex: 9999 }),
+                        }}
                         onChange={itemChanged}
                     />
                 </div>
@@ -688,27 +703,27 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
             <div className="row justify-content-center my-2">
                 <div className="col text-center">
                     <p className="mb-1"><TranslatableText identifier="builder.misc.maxHealthPercent"></TranslatableText></p>
-                    <input type="number" name="health" min="1" defaultValue="100" className="" />
+                    <input type="number" name="health" min="1" defaultValue="100" className={styles.builderCompactInput} />
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Tenacity</p>
-                    <input type="number" name="tenacity" min="0" max="30" defaultValue="0" className="" />
+                    <input type="number" name="tenacity" min="0" max="30" defaultValue="0" className={styles.builderCompactInput} />
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Vitality</p>
-                    <input type="number" name="vitality" min="0" max="30" defaultValue="0" className="" />
+                    <input type="number" name="vitality" min="0" max="30" defaultValue="0" className={styles.builderCompactInput} />
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Vigor</p>
-                    <input type="number" name="vigor" min="0" max="30" defaultValue="0" className="" />
+                    <input type="number" name="vigor" min="0" max="30" defaultValue="0" className={styles.builderCompactInput} />
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Focus</p>
-                    <input type="number" name="focus" min="0" max="30" defaultValue="0" className="" />
+                    <input type="number" name="focus" min="0" max="30" defaultValue="0" className={styles.builderCompactInput} />
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Perspicacity</p>
-                    <input type="number" name="perspicacity" min="0" max="30" defaultValue="0" className="" />
+                    <input type="number" name="perspicacity" min="0" max="30" defaultValue="0" className={styles.builderCompactInput} />
                 </div>
             </div>
             <div className="row pt-2">

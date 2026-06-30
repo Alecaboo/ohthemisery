@@ -2,6 +2,7 @@ import Enchants from './enchants'
 import styles from '../../styles/Items.module.css'
 import React from 'react'
 import TranslatableText from '../translatableText';
+import { loadItemSpriteMap, getMappedSpriteClass } from '../../utils/items/spritesheetMap';
 
 function camelCase(str, upper) {
     if (!str) return "";
@@ -84,28 +85,6 @@ function getItemsheetClass(itemName) {
     return `monumenta-${camelCase(itemName.replace(/\(.*\)/g, '').replace("EX ", "").replaceAll("'", "").replaceAll(".", "").trim().replaceAll(" ", "-").replaceAll("_", "-").toLowerCase(), true)}`;
 }
 
-function doesStyleExist(className) {
-    try {
-        let styleSheets = document.styleSheets;
-        let styleSheetsLength = styleSheets.length;
-        for (let i = 0; i < styleSheetsLength; i++){
-            let classes = styleSheets[i].cssRules;
-            if (!classes) {
-                continue;
-            }
-            
-            for (let x = 0; x < classes.length; x++) {
-                if (classes[x].selectorText == `.${className}`) {
-                    return true;
-                }
-            }
-        }
-    } catch (e) {
-        return false;
-    }
-    return false;
-}
-
 function doesNameContainNonASCII(name) {
     for (let i = 0; i < name.length; i++) {
         if (name.charCodeAt(i) > 127) {
@@ -136,6 +115,7 @@ export default function MasterworkableItemTile(data) {
     const [activeItem, setActiveItem] = React.useState(defaultItem);
     const [cssClass, setCssClass] = React.useState(getItemsheetClass(activeItem.name));
     const [baseBackgroundClass, setBaseBackgroundClass] = React.useState("monumenta-items");
+    const [spriteMap, setSpriteMap] = React.useState(null);
 
     function spanClicked(event) {
         let masterworkClicked = Number(event.target.id.split("-")[1]);
@@ -153,13 +133,31 @@ export default function MasterworkableItemTile(data) {
     const [starsAnimated, setStarsAnimated] = React.useState(false);
 
     React.useEffect(() => {
-        if (!doesStyleExist(getItemsheetClass(activeItem.name))) {
-            // The item doesn't have its own texture on the spritesheet, and must be defaulted to a minecraft texture.
-            setBaseBackgroundClass("minecraft");
-            setCssClass(`minecraft-${activeItem['base_item'].replaceAll(" ", "-").replaceAll("_", "-").toLowerCase()}`);
-        } else {
+        let active = true;
+        loadItemSpriteMap().then((map) => {
+            if (active) {
+                setSpriteMap(map);
+            }
+        });
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    React.useEffect(() => {
+        // Prefer the explicit mapping generated from the texture pack.
+        const mappedClass = getMappedSpriteClass(spriteMap, activeItem.name);
+        if (mappedClass) {
+            setBaseBackgroundClass("monumenta-items");
+            setCssClass(mappedClass);
+        } else if (!spriteMap) {
+            // While the sprite map is still loading, fall back to the legacy class-name heuristic.
             setBaseBackgroundClass("monumenta-items");
             setCssClass(getItemsheetClass(activeItem.name));
+        } else {
+            // Otherwise, default to a minecraft texture.
+            setBaseBackgroundClass("minecraft");
+            setCssClass(`minecraft-${activeItem['base_item'].replaceAll(" ", "-").replaceAll("_", "-").toLowerCase()}`);
         }
 
         const stars = [star1, star2, star3, star4];
@@ -179,7 +177,7 @@ export default function MasterworkableItemTile(data) {
     
             setStarsAnimated(true);
         }
-    }, [activeItem, starsAnimated]);
+    }, [activeItem, spriteMap, starsAnimated]);
 
     
     return (

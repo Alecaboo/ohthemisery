@@ -494,13 +494,27 @@ class Stats {
 
     sumNumberStat(itemStats, statName, defaultIncrement) {
         if (!itemStats) return 0;
-        return (itemStats[statName]) ? Number(itemStats[statName]) : (defaultIncrement) ? defaultIncrement : 0;
+        const value = itemStats[statName];
+        if (value === undefined) {
+            return (defaultIncrement) ? defaultIncrement : 0;
+        }
+        if (typeof value === "object" && value !== null && "value" in value) {
+            return Number(value.value || 0);
+        }
+        return Number(value);
     }
 
     sumEnchantmentStat(itemStats, enchName, perLevelMultiplier) {
         // console.log("summing up ",itemStats," value of ",enchName," with multiplier ", perLevelMultiplier)
         if (!itemStats) return 0;
-        return (itemStats[enchName]) ? Number(itemStats[enchName]) * perLevelMultiplier : 0;
+        const value = itemStats[enchName];
+        if (value === undefined) {
+            return 0;
+        }
+        if (typeof value === "object" && value !== null && "value" in value) {
+            return Number(value.value || 0) * perLevelMultiplier;
+        }
+        return Number(value) * perLevelMultiplier;
     }
 
     adjustStats() {

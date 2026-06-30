@@ -42,17 +42,31 @@ const SelectInput = (data) => {
                 name={data.name}
                 options={options}
                 defaultValue={data.default ? data.default : options[0]}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                menuPosition="fixed"
                 theme={theme => ({
                     ...theme,
-                    borderRadius: 0,
+                    borderRadius: 10,
                     colors: {
                         ...theme.colors,
-                        primary: "#bbbbbb",
-                        primary25: "#2a2a2a",
-                        neutral0: "black",
-                        neutral80: "white"
+                        primary: "var(--text-1)",
+                        primary25: "var(--surface-2)",
+                        neutral0: "var(--glass-1)",
+                        neutral5: "var(--glass-2)",
+                        neutral10: "var(--glass-2)",
+                        neutral20: "var(--control-border)",
+                        neutral30: "var(--control-border-hover)",
+                        neutral60: "var(--text-2)",
+                        neutral80: "var(--text-1)"
                     },
                 })}
+                styles={{
+                    control: (base) => ({ ...base, minHeight: 42, height: 42 }),
+                    valueContainer: (base) => ({ ...base, height: 42, paddingTop: 0, paddingBottom: 0 }),
+                    indicatorsContainer: (base) => ({ ...base, height: 42 }),
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    menu: (base) => ({ ...base, zIndex: 9999 }),
+                }}
                 onChange={data.onChange}
             />
         </div>

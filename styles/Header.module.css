@@ -1,8 +1,118 @@
 .link {
-    color: white;
+    color: var(--text-1);
     text-decoration: none;
+    text-underline-offset: 3px;
+    transition: color 150ms ease, text-decoration-color 150ms ease;
 }
   
 .link:hover {
-    color: lightgray;
+    color: var(--text-2);
+    text-decoration: underline;
+}
+
+.navButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    min-height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--text-1);
+    text-decoration: none;
+    transition: background-color 150ms ease, border-color 150ms ease, transform 75ms ease, filter 150ms ease;
+}
+
+.navButton:hover {
+    border-color: var(--control-border-hover);
+    filter: brightness(115%);
+}
+
+.navButton:active {
+    transform: translateY(1px);
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--glass-1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.themeToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    min-height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--text-1);
+    transition: background-color 150ms ease, border-color 150ms ease, transform 75ms ease, filter 150ms ease;
+}
+
+.themeToggle:hover {
+    border-color: var(--control-border-hover);
+    filter: brightness(115%);
+}
+
+.themeToggle:active {
+    transform: translateY(1px);
+}
+
+.inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+}
+
+.left {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 220px;
+}
+
+.languageSelect {
+    width: 100%;
+    min-width: 220px;
+}
+
+.languageLabel {
+    white-space: nowrap;
+}
+
+.nav {
+    display: inline-flex;
+    gap: 10px;
+    justify-content: center;
+    flex: 1;
+}
+
+.right {
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    min-width: 240px;
+}
+
+.translateCta {
+    color: var(--text-2);
+}
+
+.translateCta b {
+    color: var(--text-1);
 }

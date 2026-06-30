@@ -30,23 +30,31 @@ function getCharmSheetClass(charmName) {
 }
 
 function doesStyleExist(className) {
+    let styleSheets;
     try {
-        let styleSheets = document.styleSheets;
-        let styleSheetsLength = styleSheets.length;
-        for (let i = 0; i < styleSheetsLength; i++){
-            let classes = styleSheets[i].cssRules;
-            if (!classes) {
-                continue;
-            }
-            
-            for (let x = 0; x < classes.length; x++) {
-                if (classes[x].selectorText == `.${className}`) {
-                    return true;
-                }
-            }
-        }
+        styleSheets = document.styleSheets;
     } catch (e) {
         return false;
+    }
+
+    for (let i = 0; i < styleSheets.length; i++) {
+        let rules;
+        try {
+            rules = styleSheets[i].cssRules;
+        } catch (e) {
+            // Cross-origin stylesheets (e.g., CDN bootstrap) throw on cssRules.
+            continue;
+        }
+
+        if (!rules) {
+            continue;
+        }
+
+        for (let x = 0; x < rules.length; x++) {
+            if (rules[x].selectorText == `.${className}`) {
+                return true;
+            }
+        }
     }
     return false;
 }

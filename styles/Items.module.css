@@ -21,25 +21,33 @@
     margin: 15px;
     background: #110110;
     border: 3px solid #2c0860;
-    box-shadow: 4px 0 0 #110110, -4px 0 #110110, 0 4px 0 #110110, 0 -4px 0 #110110;
-    color: #aaa;
-    text-shadow: 1px 1px 0 #2a2a2a;
+    border-radius: 12px;
+    box-shadow: var(--shadow-elevated);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--text-2);
+    text-shadow: 0 1px 0 currentColor;
     padding: 8px;
     display: flex;
     flex-direction: column;
 }
 
+:global(html[data-theme="light"]) .itemTile {
+    background: #6639622d;
+}
+
 .checkboxWithLabel {
-    outline: 1px solid #cccccc;
+    outline: 1px solid var(--glass-border);
+    border-radius: 10px;
 }
 
 .noSituationals {
-    color: #aaa;
+    color: var(--text-2);
     font-style: italic;
 }
 
 .noSituationals, .checkboxWithLabel {
-    background-color: black;
+    background-color: var(--glass-2);
     padding: 4px;
     margin: 2px;
     width: fit-content;
@@ -625,12 +633,20 @@
         #3d3286
     );
     background-size: 200%;
-    border: 3px solid #3d3286;
-    transition-duration: 600ms;
+    border: 1px solid rgba(61, 50, 134, 0.95);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: filter 150ms ease, transform 75ms ease;
+    color: var(--text-on-accent);
 }
 
 .recalcButton:hover, .shareButton:hover {
-    transform: scale(1.02);
+    filter: brightness(125%);
+}
+
+.recalcButton:active, .shareButton:active {
+    transform: translateY(1px);
 }
 
 .resetButton {
@@ -646,12 +662,48 @@
         #8c0b25
     );
     background-size: 200%;
-    border: 3px solid #8c0b25;
-    transition-duration: 600ms;
+    border: 1px solid rgba(140, 11, 37, 0.95);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: filter 150ms ease, transform 75ms ease;
+    color: var(--text-on-accent);
+}
+
+.builderPage {
+    color: var(--text-1);
+}
+
+.builderPage :global(input[id^="react-select-"][id$="-input"]) {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.builderStatCard {
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-1);
+    box-shadow: var(--shadow-elevated);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.builderCompactInput {
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: var(--glass-2);
+    border: 1px solid var(--control-border);
+    color: var(--text-1);
+    max-width: 160px;
 }
 
 .resetButton:hover {
-    transform: scale(1.02);
+    filter: brightness(125%);
+}
+
+.resetButton:active {
+    transform: translateY(1px);
 }
 
 @keyframes background-pan {

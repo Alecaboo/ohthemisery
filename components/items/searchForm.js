@@ -68,15 +68,7 @@ export default function SearchForm({ update, itemData }) {
     ];
 
     const deleteFilter = React.useCallback((key) => {
-        setFilters((oldFilters) => {
-            // Never allow the UI to end up with zero filter rows.
-            if (!oldFilters || oldFilters.length <= 1) {
-                return [{ "activeCategory": null, "selected": null, "uniqueKey": new Date().getTime() }];
-            }
-
-            const next = oldFilters.filter((f) => f.uniqueKey != key);
-            return next.length ? next : [{ "activeCategory": null, "selected": null, "uniqueKey": new Date().getTime() }];
-        });
+        setFilters(oldFilters => oldFilters.filter(f => f.uniqueKey != key));
     }, []);
 
     const [filters, setFilters] = React.useState([{"activeCategory": null, "selected": null, "uniqueKey": new Date().getTime()}]);
@@ -128,18 +120,7 @@ export default function SearchForm({ update, itemData }) {
         <form className={styles.searchForm} onSubmit={sendUpdate} onReset={resetForm} onContextMenu={disableRightClick} ref={form}>
             <div className={styles.searchContainer} ref={searchContainer}>
                 {
-                    filters.map(f => (
-                        <div className="my-1 w-100" key={`div-${f.uniqueKey}`}>
-                            <SelectWithTriggers
-                                className="w-100"
-                                key={f.uniqueKey}
-                                name="categorySelect"
-                                opts={categories}
-                                index={f.uniqueKey}
-                                deleteCallback={deleteFilter}
-                            />
-                        </div>
-                    ))
+                    filters.map(f => <div className={`my-1 ${styles.searchControls}`} key={`div-${f.uniqueKey}`}><SelectWithTriggers className={`my-1 d-inline`} key={f.uniqueKey} name="categorySelect" opts={categories} index={f.uniqueKey} deleteCallback={deleteFilter} /></div>)
                 }
             </div>
 

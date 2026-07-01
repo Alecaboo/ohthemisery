@@ -2,7 +2,6 @@ import styles from '../../styles/Items.module.css';
 import ConsumableFormatter from '../../utils/items/consumableFormatter';
 import TranslatableText from '../translatableText';
 import React from 'react';
-import { loadItemSpriteMap, getMappedSpriteClass } from '../../utils/items/spritesheetMap';
 
 const MAX_FISH_QUALITY = 5;
 
@@ -24,6 +23,28 @@ function getItemsheetClass(itemName) {
     return `monumenta-${itemName.replace(/\(.*\)/g, '').replaceAll(" ", "-").replaceAll("_", "-").replaceAll("'", "").trim()}`;
 }
 
+function doesStyleExist(className) {
+    try {
+        let styleSheets = document.styleSheets;
+        let styleSheetsLength = styleSheets.length;
+        for (let i = 0; i < styleSheetsLength; i++){
+            let classes = styleSheets[i].cssRules;
+            if (!classes) {
+                continue;
+            }
+            
+            for (let x = 0; x < classes.length; x++) {
+                if (classes[x].selectorText == `.${className}`) {
+                    return true;
+                }
+            }
+        }
+    } catch (e) {
+        return false;
+    }
+    return false;
+}
+
 function getFishQualityElement(fishQuality) {
     return <span><span>Fish Quality : </span><span className={styles[`fish${fishQuality}`]}>{"★".repeat(fishQuality) + "☆".repeat(MAX_FISH_QUALITY - fishQuality)}</span></span>
 }
@@ -34,38 +55,17 @@ export default function ConsumableTile(data) {
 
     const [cssClass, setCssClass] = React.useState(getItemsheetClass(item.name));
     const [baseBackgroundClass, setBaseBackgroundClass] = React.useState("monumenta-items");
-    const [spriteMap, setSpriteMap] = React.useState(null);
 
     React.useEffect(() => {
-        let active = true;
-        loadItemSpriteMap().then((map) => {
-            if (active) {
-                setSpriteMap(map);
-            }
-        });
-        return () => {
-            active = false;
-        };
-    }, []);
-
-    React.useEffect(() => {
-        const mappedClass = getMappedSpriteClass(spriteMap, item.name);
-        if (mappedClass) {
-            setBaseBackgroundClass("monumenta-items");
-            setCssClass(mappedClass);
-            return;
-        }
-
-        if (!spriteMap) {
+        if (!doesStyleExist(getItemsheetClass(item.name))) {
+            // The consumable doesn't have its own texture on the spritesheet, and must be defaulted to a minecraft texture.
+            setBaseBackgroundClass("minecraft");
+            setCssClass(`minecraft-${item['base_item'].replaceAll(" ", "-").replaceAll("_", "-").toLowerCase()}`);
+        } else {
             setBaseBackgroundClass("monumenta-items");
             setCssClass(getItemsheetClass(item.name));
-            return;
         }
-
-        // The consumable doesn't have its own texture on the spritesheet, and must be defaulted to a minecraft texture.
-        setBaseBackgroundClass("minecraft");
-        setCssClass(`minecraft-${item['base_item'].replaceAll(" ", "-").replaceAll("_", "-").toLowerCase()}`);
-    }, [item, spriteMap]);
+    }, [item]);
 
     return (
         <div className={`${styles.itemTile} ${data.hidden ? styles.hidden : ""}`}>

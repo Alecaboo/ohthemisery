@@ -1,9 +1,6 @@
 .listSelectorContainer {
-    border-radius: 12px;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    border-radius: 5px;
+    border: 1px solid white;
     display: block;
 }
   
@@ -21,11 +18,6 @@
 
 .entryInput {
     width: 25em;
-    background: var(--glass-2);
-    border: 1px solid var(--control-border);
-    border-radius: 10px;
-    padding: 7px 10px;
-    color: var(--text-1);
 }
 
 .entry {
@@ -37,7 +29,7 @@
 .entry:hover {
     transform: scale(1.05);
     cursor: pointer;
-    color: var(--text-2);
+    color: lightgray;
 }
 
 .name {
@@ -50,20 +42,12 @@
     width: 38px;
     height: 38px;
     font-weight: bold;
-    border: 1px solid var(--control-border);
-    background: var(--glass-1);
-    border-radius: 10px;
-    color: var(--text-1);
-    transition: background-color 150ms ease, transform 75ms ease, border-color 150ms ease;
+    border: 1px solid white;
+    background: none;
 }
 
 .button:hover {
-    background: var(--glass-2);
-    border-color: var(--control-border-hover);
-}
-
-.button:active {
-    transform: translateY(1px);
+    background: #222222;
 }
 
 .powerStars {

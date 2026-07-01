@@ -1,35 +1,27 @@
 {
   "name": "ohthemisery",
-  "version": "2.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "sheet": "node utils\\spritesheetmaker\\index.js",
-    "hooleesheet": "node utils\\spritesheetmaker\\index.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.13.6",
-    "adm-zip": "^0.5.16",
     "axios": "^1.4.0",
-    "cookies-next": "4.3.0",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.35",
-    "lz-string": "^1.5.0",
-    "next": "14.2.35",
+    "cookies-next": "^2.1.2",
+    "eslint": "8.43.0",
+    "eslint-config-next": "13.4.7",
+    "next": "13.4.7",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-infinite-scroll-component": "^6.1.0",
     "react-select": "^5.7.3",
-    "sharp": "^0.34.5",
     "yarn": "^1.22.19"
-  },
-  "overrides": {
-    "glob": "^10.5.0"
   }
 }

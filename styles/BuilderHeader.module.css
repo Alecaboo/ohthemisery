@@ -10,16 +10,13 @@
     max-width: 34px;
     max-height: 34px;
     padding: 2px;
-    border: 1px solid var(--glass-border);
+    border: 2px solid white;
     border-radius: 8px;
-    background: var(--glass-1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 
 .builderHeaderEditIcon:hover {
     cursor: pointer;
-    background: var(--glass-2);
+    background: #444444;
 }
 
 .builderHeaderEditIcon:active {
@@ -31,7 +28,7 @@
     display: inline-block;
     min-width: 12px;
     padding: 0;
-    background-color: transparent;
+    background-color: blueviolet;
     box-sizing: content-box;
 }
 
@@ -40,10 +37,9 @@
     margin-bottom: .5rem;
     font-weight: 500;
     line-height: 1.2;
-    color: var(--text-1);
+    color: var(--bs-heading-color);
     font-size: calc(1.25rem + 1.5vw);
     border: none;
     outline: none;
     height: auto;
-    background: transparent;
 }

@@ -8,136 +8,39 @@ import Fs from 'fs/promises';
 import extras from '../public/items/extras.json';
 import BuilderHeader from '../components/items/builderHeader';
 import styles from '../styles/Items.module.css'
-import { decodeBuildParam } from '../utils/builder/buildUrlCodec';
-import CharmShortener from '../utils/builder/charmShortener';
-
-function parseCharmPreview(charmValue, itemData) {
-    if (!charmValue || charmValue === "None") return { totalPower: 0, items: [] };
-    if (!itemData) return { totalPower: 0, items: [] };
-
-    try {
-        const charmKeys = CharmShortener.parseCharmData(String(charmValue), itemData);
-        const items = charmKeys
-            .map((k) => itemData[k])
-            .filter(Boolean)
-            .map((c) => {
-                const power = Number(c.power);
-                const powerText = Number.isFinite(power) ? `${power}★` : "★";
-                return `${c.name} ${powerText}`;
-            });
-
-        const totalPower = charmKeys
-            .map((k) => Number(itemData[k]?.power))
-            .filter((p) => Number.isFinite(p))
-            .reduce((sum, p) => sum + p, 0);
-
-        return { totalPower, items };
-    } catch (e) {
-        return { totalPower: 0, items: [] };
-    }
-}
-
-function getLinkPreviewData(build, itemData) {
-    const decoded = decodeBuildParam(build, itemData);
-    if (!decoded) return null;
-
-    try {
-        const params = new URLSearchParams(decoded);
-        const itemKey = (shortKey, fallback = "None") => params.get(shortKey) || fallback;
-
-        const items = {
-            mainhand: itemKey("m"),
-            offhand: itemKey("o"),
-            helmet: itemKey("h"),
-            chestplate: itemKey("c"),
-            leggings: itemKey("l"),
-            boots: itemKey("b"),
-        };
-
-        for (const key of Object.keys(items)) {
-            if (!items[key] || !Object.keys(itemData).includes(items[key])) items[key] = "None";
-        }
-
-        const charmValue = params.get("charm") || "None";
-        const charmPreview = parseCharmPreview(charmValue, itemData);
-
-        const nameValue = params.get("name") || null;
-
-        return {
-            name: nameValue ? decodeURIComponent(nameValue) : null,
-            items,
-            charms: charmPreview,
-        };
-    } catch (e) {
-        return null;
-    }
-}
-
-function getLinkPreviewTitle(build, builderHeaderText, parentLoaded, itemData) {
-    const prefix = getBuildName(build, builderHeaderText, parentLoaded, itemData);
-    return (prefix ? prefix : "") + "Monumenta Builder";
-}
 
 function getLinkPreviewDescription(build, itemData) {
-    const data = getLinkPreviewData(build, itemData);
-    if (!data) return "";
-
-    const i = data.items;
-
-    const formatItem = (itemKey) => {
-        if (!itemKey || itemKey === 'None') return 'None';
-        const displayName = itemData?.[itemKey]?.name || itemKey;
-        return displayName;
+    if (!build) return ""
+    let res = "";
+    const buildParts = decodeURI(build).split("&");
+    let itemNames = {
+        mainhand: (buildParts.find(str => str.includes("m="))?.split("m=")[1]),
+        offhand: (buildParts.find(str => str.includes("o="))?.split("o=")[1]),
+        helmet: (buildParts.find(str => str.includes("h="))?.split("h=")[1]),
+        chestplate: (buildParts.find(str => str.includes("c="))?.split("c=")[1]),
+        leggings: (buildParts.find(str => str.includes("l="))?.split("l=")[1]),
+        boots: (buildParts.find(str => str.includes("b="))?.split("b=")[1])
     };
-
-    const wrapCharmList = (prefix, charmItems, maxLen) => {
-        if (!charmItems || charmItems.length === 0) return 'Charms: None';
-
-        const lines = [];
-        let current = prefix;
-
-        for (const charm of charmItems) {
-            const addition = (current === prefix ? '' : ', ') + charm;
-            if (current.length + addition.length > maxLen && current !== prefix) {
-                lines.push(current);
-                current = charm;
-            } else {
-                current += addition;
-            }
+    for (const type in itemNames) {
+        if (itemNames[type] === undefined || !Object.keys(itemData).includes(itemNames[type])) {
+            res += "None\n";
+        } else {
+            res += `${itemNames[type]}\n`
         }
-
-        if (current) lines.push(current);
-        return lines.join("\n");
     };
 
-    const charmInline = wrapCharmList(
-        `Charms (${data.charms.totalPower}★): `,
-        data.charms.items,
-        90
-    );
-
-    // Discord renders newlines in embed descriptions.
-    return [
-        `Mainhand: ${formatItem(i.mainhand)}`,
-        `Offhand: ${formatItem(i.offhand)}`,
-        `Helmet: ${formatItem(i.helmet)}`,
-        `Chestplate: ${formatItem(i.chestplate)}`,
-        `Leggings: ${formatItem(i.leggings)}`,
-        `Boots: ${formatItem(i.boots)}`,
-        charmInline,
-    ].join("\n");
+    return res;
 }
 
-function getBuildName(build, builderHeaderText, parentLoaded, itemData) {
+function getBuildName(build, builderHeaderText, parentLoaded) {
     // if the page hasn't fully loaded yet, get it from the url (since builderheadertext is still default)
     // if the page has been loaded and builderheadertext is undefined, get it from the url
     // otherwise get it from builderheadertext
     if(parentLoaded && builderHeaderText === "Monumenta Builder") return "";
     if(parentLoaded && builderHeaderText !== undefined) return builderHeaderText + " - ";
     // console.log("getting build name from ",build)
-    const decoded = decodeBuildParam(build, itemData);
-    if (!decoded) return "";
-    const buildParts = decoded.split("&");
+    if (!build) return "";
+    const buildParts = build[0].split("&");
     let buildName = buildParts.find(str => str.includes("name="))?.split("name=")[1];
     if(buildName === undefined) return "";
     buildName = decodeURIComponent(buildName);
@@ -245,27 +148,17 @@ export default function Builder({ build, itemData }) {
     return (
         <div className="container-fluid">
             <Head>
-                <title>{getLinkPreviewTitle(build, builderHeaderText, parentLoaded, itemData)}</title>
-
+                <title>{getBuildName(build, builderHeaderText, parentLoaded) + "Monumenta Builder"}</title>
                 <meta property="og:site_name" content="ODE TO MISERY" />
-                <meta property="og:type" content="website" />
-                <meta property="og:title" content={getLinkPreviewTitle(build, builderHeaderText, parentLoaded, itemData)} />
-                <meta property="og:description" content={getLinkPreviewDescription(build, itemData)} />
                 <meta property="og:image" content="/favicon.ico" />
-
-                <meta name="twitter:card" content="summary" />
-                <meta name="twitter:title" content={getLinkPreviewTitle(build, builderHeaderText, parentLoaded, itemData)} />
-                <meta name="twitter:description" content={getLinkPreviewDescription(build, itemData)} />
-                <meta name="twitter:image" content="/favicon.ico" />
-
-                <meta name="description" content={getLinkPreviewDescription(build, itemData)} />
+                <meta name="description" content={`${getLinkPreviewDescription(build, itemData)}`} />
                 <meta name="keywords" content="Monumenta, Minecraft, MMORPG, Items, Builder" />
             </Head>
-            <main className={styles.builderPage}>
+            <main>
                 <BuilderHeader text={builderHeaderText} setText={setBuilderHeaderText} parentLoaded={parentLoaded} build={build} setUpdateLink={setUpdateLink}/>
                 <BuildForm update={change} build={build} parentLoaded={parentLoaded} itemData={itemData} itemsToDisplay={itemsToDisplay} buildName={builderHeaderText} updateLink={updateLink} setUpdateLink={setUpdateLink}></BuildForm>
                 <div className="row justify-content-center mb-2">
-                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
+                    <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.misc"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -277,7 +170,7 @@ export default function Builder({ build, itemData }) {
                             )
                         }
                     </div>
-                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
+                    <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.health"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -289,7 +182,7 @@ export default function Builder({ build, itemData }) {
                             )
                         }
                     </div>
-                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
+                    <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.damageReduction"></TranslatableText></h5>
                         <h6 className="text-center fw-bold"><TranslatableText identifier="builder.statCategories.damageReduction.sub"></TranslatableText></h6>
                         {
@@ -301,7 +194,7 @@ export default function Builder({ build, itemData }) {
                             )
                         }
                     </div>
-                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
+                    <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.damageReductionHealthNormalized"></TranslatableText></h5>
                         <h6 className="text-center fw-bold"><TranslatableText identifier="builder.statCategories.damageReductionHealthNormalized.sub"></TranslatableText></h6>
                         {
@@ -313,7 +206,7 @@ export default function Builder({ build, itemData }) {
                             )
                         }
                     </div>
-                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
+                    <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.effectiveHealth"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -339,7 +232,7 @@ export default function Builder({ build, itemData }) {
                             })()
                         }
                     </div>
-                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
+                    <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.melee"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -352,7 +245,7 @@ export default function Builder({ build, itemData }) {
                             })
                         }
                     </div>
-                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
+                    <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.projectile"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -365,7 +258,7 @@ export default function Builder({ build, itemData }) {
                             })
                         }
                     </div>
-                    <div className={`${styles.builderStatCard} col-auto text-center mx-2 py-2`}>
+                    <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.magic"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
@@ -403,11 +296,11 @@ export async function getServerSideProps(context) {
                     })
                     .catch(async (error) => {
                         console.error("Fetch from U5B's Github failed. Falling back to stored items json.");
-                        itemData = JSON.parse(await Fs.readFile('public/items/items.json'));
+                        itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
                     })
             })
     } else {
-        itemData = JSON.parse(await Fs.readFile('public/items/items.json'));
+        itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
     }
     let build = context.query?.build ? context.query.build : null;
 

@@ -178,25 +178,10 @@ class StatFormatter {
         }
         let formattedStats = [];
 
-        const getStatValue = (value) => {
-            if (value === undefined || value === null) {
-                return undefined;
-            }
-            if (typeof value === "object" && "value" in value) {
-                return value.value;
-            }
-            return value;
-        };
-
         for (const category in categories) {
             for (const stat of categories[category]) {
-                const rawValue = getStatValue(stats[stat.name]);
-                if (rawValue !== undefined) {
-                    formattedStats.push(
-                        <TranslatableEnchant key={stat.name} title={stat.name} className={styles[this.statStyle(stat, rawValue, category)]}>
-                            {this.toHumanReadable(stat, rawValue)}
-                        </TranslatableEnchant>
-                    );
+                if (stats[stat.name]) {
+                    formattedStats.push(<TranslatableEnchant key={stat.name} title={stat.name} className={styles[this.statStyle(stat, stats[stat.name], category)]}>{this.toHumanReadable(stat, stats[stat.name])}</TranslatableEnchant>);
                 }
             }
         }

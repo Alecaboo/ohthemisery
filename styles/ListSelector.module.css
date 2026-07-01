@@ -1,12 +1,9 @@
 .listSelectorContainer {
-    border-radius: 12px;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    border-radius: 5px;
+    border: 1px solid white;
     display: block;
 }
-
+  
 .listSelectorInputs {
     display: inline-flex;
     width: 100%;
@@ -19,11 +16,6 @@
 
 .entryInput {
     width: 85%;
-    background: var(--glass-2);
-    border: 1px solid var(--control-border);
-    border-radius: 10px;
-    padding: 7px 10px;
-    color: var(--text-1);
 }
 
 .entry {
@@ -38,7 +30,7 @@
 .entry:hover {
     text-decoration: line-through;
     cursor: pointer;
-    color: var(--text-2);
+    color: lightgray;
 }
 
 .name {
@@ -51,18 +43,4 @@
     width: 32px;
     height: 32px;
     font-weight: bold;
-    border: 1px solid var(--control-border);
-    border-radius: 10px;
-    background: var(--glass-1);
-    color: var(--text-1);
-    transition: background-color 150ms ease, transform 75ms ease, border-color 150ms ease;
-}
-
-.button:hover {
-    background: var(--glass-2);
-    border-color: var(--control-border-hover);
-}
-
-.button:active {
-    transform: translateY(1px);
 }

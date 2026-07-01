@@ -27,50 +27,32 @@ const SelectWithTriggers = (props) => {
     }, [props]);
 
     return (
-        <div className={`${props.className || ''} ${styles.filterRow}`.trim()}>
-            <div className={styles.filterMain}>
-                <Select
-                className={styles.categorySelect}
+        <div className={props.className}>
+            <input className={styles.deleteButton} type='button' value='X' onClick={handleDeleteItem} />
+            <Select
+                className={`d-inline-block mx-1 ${styles.categoryWidth}`}
                 ref={props.reference}
                 instanceId={props.name}
                 name={props.name}
                 defaultValue={selectedDefault}
                 options={opt}
                 onChange={triggerSelection}
-                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                menuPosition="fixed"
                 theme={theme => ({
                     ...theme,
-                    borderRadius: 10,
+                    borderRadius: 0,
                     colors: {
                         ...theme.colors,
-                        primary: "var(--text-1)",
-                        primary25: "var(--surface-2)",
-                        neutral0: "var(--glass-1)",
-                        neutral5: "var(--glass-2)",
-                        neutral10: "var(--glass-2)",
-                        neutral20: "var(--control-border)",
-                        neutral30: "var(--control-border-hover)",
-                        neutral60: "var(--text-2)",
-                        neutral80: "var(--text-1)"
+                        primary: "#bbbbbb",
+                        primary25: "#2a2a2a",
+                        neutral0: "black",
+                        neutral80: "white"
                     },
                 })}
-                styles={{
-                    container: (base) => ({ ...base, width: '100%' }),
-                    control: (base) => ({ ...base, minHeight: 42, height: 42 }),
-                    valueContainer: (base) => ({ ...base, height: 42, paddingTop: 0, paddingBottom: 0 }),
-                    indicatorsContainer: (base) => ({ ...base, height: 42 }),
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    menu: (base) => ({ ...base, zIndex: 9999 }),
-                }}
             />
 
-                <div ref={container} className={styles.selectorSelect}>
-                    {firstChild}
-                </div>
+            <div ref={container} className={`d-inline-block mx-1 ${styles.selectorWidth}`}>
+                {firstChild}
             </div>
-
-            <input className={`${styles.deleteButton} ${styles.filterDelete}`} type='button' value='X' onClick={handleDeleteItem} />
         </div>
     )
 }

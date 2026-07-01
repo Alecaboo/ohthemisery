@@ -14,7 +14,7 @@ const languageNames = {
     'fr': "Français"
 }
 
-function LanguageSelector({ className } = {}) {
+function LanguageSelector() {
     const options = Object.keys(SupportedLanguages).map(lang => { return { "value": lang, "label": languageNames[lang] } });
     const { lang, setLang } = useLanguageContext();
 
@@ -30,38 +30,20 @@ function LanguageSelector({ className } = {}) {
     }, [setLang]);
     
     return (
-        <div className={className} style={{ width: '100%' }}>
-            <Select
-                key={lang}
-                instanceId={lang}
-                name="languageSelect"
-                options={options}
-                onChange={langSelected}
-                defaultValue={options.find(opt => opt.value == lang)}
-                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                menuPosition="fixed"
-                theme={(theme) => ({
-                    ...theme,
-                    borderRadius: 10,
-                    colors: {
-                        ...theme.colors,
-                        primary: "var(--text-1)",
-                        primary25: "var(--surface-2)",
-                        neutral0: "var(--glass-1)",
-                        neutral5: "var(--glass-2)",
-                        neutral10: "var(--glass-2)",
-                        neutral20: "var(--control-border)",
-                        neutral30: "var(--control-border-hover)",
-                        neutral60: "var(--text-2)",
-                        neutral80: "var(--text-1)",
-                    },
-                })}
-                styles={{
-                    container: (base) => ({ ...base, width: '100%' }),
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    menu: (base) => ({ ...base, zIndex: 9999 }),
-                }}
-            />
+        <div>
+            <Select key={lang} instanceId={lang} name="sortSelect" options={options} onChange={langSelected}
+            defaultValue={options.find(opt => opt.value == lang)}
+            theme={theme => ({
+                ...theme,
+                borderRadius: 0,
+                colors: {
+                    ...theme.colors,
+                    primary: "#bbbbbb",
+                    primary25: "#2a2a2a",
+                    neutral0: "black",
+                    neutral80: "white"
+                },
+            })}/>
         </div>
     )
 }

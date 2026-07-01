@@ -17,16 +17,6 @@ function extractFilterValues(data, baseKey) {
     return Object.keys(data).filter(key => key.includes(baseKey)).map(key => data[key]);
 }
 
-function getStatValue(value) {
-    if (value === undefined || value === null) {
-        return undefined;
-    }
-    if (typeof value === "object" && "value" in value) {
-        return value.value;
-    }
-    return value;
-}
-
 function getRelevantItems(data, itemData, exaltedNameList) {
     let items = Object.keys(itemData);
     items = items.filter(name => itemData[name].base_item != 'Written Book');
@@ -132,11 +122,7 @@ function getRelevantItems(data, itemData, exaltedNameList) {
         wantedItemStats.forEach(stat => {
             let attributeName = stat.toLowerCase().replaceAll(" ", "_");
             items = items.filter(name => (itemData[name].stats != undefined && typeof (itemData[name].stats[attributeName]) != "undefined"))
-            items = items.sort((item1, item2) => {
-                const value2 = Number(getStatValue(itemData[item2].stats[attributeName]) || 0);
-                const value1 = Number(getStatValue(itemData[item1].stats[attributeName]) || 0);
-                return value2 - value1;
-            })
+            items = items.sort((item1, item2) => (itemData[item2].stats[attributeName]) - (itemData[item1].stats[attributeName]))
         });
     }
 
@@ -263,11 +249,11 @@ export async function getServerSideProps(context) {
                     })
                     .catch(async (error) => {
                         console.error("Fetch from U5B's Github failed. Falling back to stored items json.");
-                        itemData = JSON.parse(await Fs.readFile('public/items/items.json'));
+                        itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
                     })
             })
     } else {
-        itemData = JSON.parse(await Fs.readFile('public/items/items.json'));
+        itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
     }
 
     // hardcoded exemption for Truest North

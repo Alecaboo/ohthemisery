@@ -83,6 +83,7 @@ export default function CharmTile(data) {
                 <span className={styles[camelCase(item.tier)]}>{(item.tier != "Base") ? `${item.tier} ` : ""}Charm</span>
             </span>
             <span className={styles[camelCase(item.location)]}>{item.location}</span>
+            {item.lore ? <span className={styles.infoText}>{item.lore}</span> : ""}
             {item.extras?.poi ? <p className={`${styles.infoText} m-0`}>{`Found in ${item.extras.poi}`}</p> : ""}
             {item.extras?.notes ? <p className={`${styles.infoText} m-0`}>{`${item.extras.notes}`}</p> : ""}
         </div>
